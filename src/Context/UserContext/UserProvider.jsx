@@ -1,14 +1,13 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { UserContext } from "./UserContext";
 
 const supabase = createClient(
     import.meta.env.VITE_SUPABASE_URL,
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 
-const UserContext = createContext();
-
-export function UserProvider({ children }) {
+export default function UserProvider({ children }) {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -32,8 +31,4 @@ export function UserProvider({ children }) {
             {children}
         </UserContext.Provider>
     );
-}
-
-export function useUser() {
-    return useContext(UserContext);
 }
