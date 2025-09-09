@@ -1,5 +1,5 @@
 import "./App.css";
-import useUser from "./hooks/useUser";
+import { useUser } from "./Context/UserProvider";
 
 function App() {
     const { user, supabase } = useUser();
