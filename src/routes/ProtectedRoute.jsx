@@ -1,17 +1,38 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import useUser from "../hooks/useUser";
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useUser();
+  const { user, profile, loading } = useUser();
+  const location = useLocation();
 
-  if (loading) {
-    // Pode ser um spinner ou null
-    return <div>Carregando...</div>;
-  }
+  if (loading) return <div>Carregando...</div>;
 
+  // Não autenticado: só pode acessar /login
   if (!user) {
-    return <Navigate to="/login" replace />;
+    if (location.pathname !== "/login") {
+      return <Navigate to="/login" replace />;
+    }
+    return children;
   }
 
-  return children;
+  // Autenticado, mas sem perfil: só pode acessar /complete-profile
+  if (user && !profile) {
+    if (location.pathname !== "/complete-profile") {
+      return <Navigate to="/complete-profile" replace />;
+    }
+    return children;
+  }
+
+  // Autenticado e com perfil: não pode acessar /login ou /complete-profile
+  if (user && profile) {
+    if (
+      location.pathname === "/login" ||
+      location.pathname === "/complete-profile"
+    ) {
+      return <Navigate to="/" replace />;
+    }
+    return children;
+  }
+
+  return null; // fallback de segurança
 }

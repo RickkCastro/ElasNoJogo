@@ -1,19 +1,7 @@
-import { useEffect } from "react";
-import useUser from "../../hooks/useUser";
-import { useNavigate } from "react-router-dom";
-import supabase from "../../lib/supabaseClient";
 import "./login.css";
+import supabase from "../../lib/supabaseClient";
 
 export default function Login() {
-  const { user } = useUser();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      navigate("/", { replace: true });
-    }
-  }, [user, navigate]);
-
   function loginWithGoogle() {
     supabase.auth.signInWithOAuth({
       provider: "google",
