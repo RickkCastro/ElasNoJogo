@@ -34,6 +34,12 @@ export default function Button({
       focus:ring-primary-500
       disabled:bg-background-light/50 disabled:border-foreground/10 disabled:hover:bg-background-light/50
     `,
+    transparente: `
+      bg-transparent hover:bg-foreground/10 active:bg-foreground/15 
+      text-foreground-muted hover:text-foreground 
+      focus:ring-primary-500
+      disabled:bg-transparent disabled:text-foreground-muted/50 disabled:hover:bg-transparent disabled:hover:text-foreground-muted/50
+    `,
   };
 
   const sizeStyles = {
