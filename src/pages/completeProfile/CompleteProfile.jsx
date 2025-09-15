@@ -265,6 +265,7 @@ export default function CompleteProfile() {
                 className="w-full"
                 size="large"
                 variant="principal"
+                onClick={handleSubmit}
               >
                 Finalizar Cadastro
               </Button>
