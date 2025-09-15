@@ -85,11 +85,11 @@ export default function Login() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
+        <footer className="text-center mt-8">
           <p className="text-xs text-foreground-subtle">
             © 2025 Elas No Jogo. Todos os direitos reservados.
           </p>
-        </div>
+        </footer>
       </div>
     </main>
   );
