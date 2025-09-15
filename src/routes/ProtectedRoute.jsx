@@ -1,14 +1,15 @@
 import { Navigate, useLocation } from "react-router-dom";
-import useUser from "../hooks/useUser";
+import useAuthRedirect from "../hooks/useAuthRedirect";
+import Loading from "../components/Loading";
 
 export default function ProtectedRoute({ children }) {
-  const { user, profile, loading } = useUser();
+  const { status } = useAuthRedirect();
   const location = useLocation();
 
-  if (loading) return <div>Carregando...</div>;
+  if (status === "loading") return <Loading />;
 
   // Não autenticado: só pode acessar /login
-  if (!user) {
+  if (status === "unauthenticated") {
     if (location.pathname !== "/login") {
       return <Navigate to="/login" replace />;
     }
@@ -16,7 +17,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   // Autenticado, mas sem perfil: só pode acessar /complete-profile
-  if (user && !profile) {
+  if (status === "incomplete") {
     if (location.pathname !== "/complete-profile") {
       return <Navigate to="/complete-profile" replace />;
     }
@@ -24,7 +25,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   // Autenticado e com perfil: não pode acessar /login ou /complete-profile
-  if (user && profile) {
+  if (status === "authenticated") {
     if (
       location.pathname === "/login" ||
       location.pathname === "/complete-profile"
