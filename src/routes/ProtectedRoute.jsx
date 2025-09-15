@@ -6,7 +6,15 @@ export default function ProtectedRoute({ children }) {
   const { status } = useAuthRedirect();
   const location = useLocation();
 
-  if (status === "loading") return <Loading />;
+  if (status === "loading")
+    return (
+      <Loading
+        showText={true}
+        fullScreen={true}
+        size="xlarge"
+        text="Carregando..."
+      />
+    );
 
   // Não autenticado: só pode acessar /login
   if (status === "unauthenticated") {

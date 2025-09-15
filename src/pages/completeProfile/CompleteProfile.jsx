@@ -252,21 +252,31 @@ export default function CompleteProfile() {
             </div>
 
             {/* Botão de submit */}
-            <Button
-              type="submit"
-              disabled={
-                loading ||
-                !formData.username ||
-                !formData.full_name ||
-                !formData.profile_type
-              }
-              loading={loading}
-              className="w-full"
-              size="large"
-              variant="principal"
-            >
-              Finalizar Cadastro
-            </Button>
+            <div className="flex flex-col gap-4 items-center">
+              <Button
+                type="submit"
+                disabled={
+                  loading ||
+                  !formData.username ||
+                  !formData.full_name ||
+                  !formData.profile_type
+                }
+                loading={loading}
+                className="w-full"
+                size="large"
+                variant="principal"
+              >
+                Finalizar Cadastro
+              </Button>
+              <Button
+                variant="cancelar"
+                size="medium"
+                className="w-40"
+                onClick={() => supabase.auth.signOut()}
+              >
+                Sair
+              </Button>
+            </div>
           </form>
 
           <div className="mt-6 text-center">
