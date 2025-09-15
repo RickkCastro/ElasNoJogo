@@ -12,6 +12,7 @@ export default function UserProvider({ children }) {
     // Timeout de segurança para garantir que loading nunca trave
     const loadingTimeout = setTimeout(() => {
       console.warn("Loading timeout - forçando loading = false");
+      setError("Timeout ao carregar dados do usuário.");
       setLoading(false);
     }, 10000); // 10 segundos
 
