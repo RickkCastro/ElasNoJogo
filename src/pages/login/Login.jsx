@@ -1,5 +1,6 @@
 import "./login.css";
 import useUser from "../../hooks/useUser";
+import Button from "../../components/Button";
 
 export default function Login() {
   const { supabase } = useUser();
@@ -11,10 +12,11 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm mx-auto">
         {/* Logo/Header */}
         <div className="text-center mb-8">
+          <img src="public/logo.png" alt="logo" className="mx-auto mb-4" />
           <h1 className="text-3xl md:text-4xl font-bold text-primary-500 mb-4">
             Elas No Jogo
           </h1>
@@ -35,13 +37,11 @@ export default function Login() {
             </p>
           </div>
 
-          <button
-            className="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 
-                     text-foreground font-medium py-3 px-6 rounded-xl 
-                     transition-colors duration-200 
-                     flex items-center justify-center gap-3
-                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-background"
+          <Button
+            variant="principal"
+            size="large"
             onClick={loginWithGoogle}
+            className="w-full"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -62,7 +62,7 @@ export default function Login() {
               />
             </svg>
             Continuar com Google
-          </button>
+          </Button>
 
           <div className="mt-6 text-center">
             <p className="text-xs text-foreground-subtle">

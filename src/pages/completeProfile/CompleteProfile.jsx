@@ -2,6 +2,7 @@ import { useState } from "react";
 import useUser from "../../hooks/useUser";
 import supabase from "../../lib/supabaseClient";
 import DialogComponents from "../../components/DialogComponents";
+import Button from "../../components/Button";
 
 export default function CompleteProfile() {
   const { user } = useUser();
@@ -251,7 +252,7 @@ export default function CompleteProfile() {
             </div>
 
             {/* Botão de submit */}
-            <button
+            <Button
               type="submit"
               disabled={
                 loading ||
@@ -259,21 +260,13 @@ export default function CompleteProfile() {
                 !formData.full_name ||
                 !formData.profile_type
               }
-              className="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 
-                       text-foreground font-medium py-3 px-6 rounded-xl 
-                       transition-colors duration-200 
-                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-background
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              className="w-full"
+              size="large"
+              variant="principal"
             >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin"></div>
-                  Salvando...
-                </div>
-              ) : (
-                "Finalizar Cadastro"
-              )}
-            </button>
+              Finalizar Cadastro
+            </Button>
           </form>
 
           <div className="mt-6 text-center">
