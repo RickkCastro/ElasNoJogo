@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import useUser from "../hooks/useUser";
 import Button from "./Button";
 
 export default function Menu() {
-  const [isOpen, setIsOpen] = useState(false);
   const { user, profile, supabase } = useUser();
   const location = useLocation();
 
@@ -19,6 +17,25 @@ export default function Menu() {
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Postar",
+      path: "/postar",
+      icon: (
+        <svg
+          className="w-4 h-4 text-foreground-muted"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M4 12H20M12 4V20"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>{" "}
         </svg>
       ),
     },
@@ -118,105 +135,53 @@ export default function Menu() {
         </div>
       </nav>
 
-      {/* Menu Mobile */}
-      <nav className="md:hidden bg-background-light border-b border-primary-500/20 sticky top-0 z-40">
-        <div className="px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Elas No Jogo" className="w-6 h-6" />
-              <span className="text-lg font-bold text-primary-500">
-                Elas No Jogo
+      {/* Header Mobile - Apenas logo e perfil */}
+      <header className="md:hidden absolute w-full p-4 flex justify-end">
+        <Link
+          to="/perfil"
+          className="hover:bg-primary-500/10 rounded-lg transition-colors duration-200"
+        >
+          <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.full_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-foreground text-sm font-bold">
+                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || "U"}
+              </span>
+            )}
+          </div>
+        </Link>
+      </header>
+
+      {/* Bottom Navigation Mobile - Estilo TikTok */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background-light border-t border-primary-500/20 z-50">
+        <div className="flex items-center justify-around px-2 py-2">
+          {menuItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 min-w-0 flex-1 ${
+                isActive(item.path)
+                  ? "text-primary-500"
+                  : "text-foreground-muted hover:text-foreground"
+              }`}
+            >
+              <div
+                className={`mb-1 ${
+                  isActive(item.path) ? "scale-110" : ""
+                } transition-transform duration-200`}
+              >
+                {item.icon}
+              </div>
+              <span className="text-xs font-medium truncate w-full text-center">
+                {item.name}
               </span>
             </Link>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-foreground p-2"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                {isOpen ? (
-                  <path d="M18.3 5.71L12 12.01 5.7 5.71 4.29 7.12 10.59 13.42 4.29 19.72 5.7 21.13 12 14.83 18.3 21.13 19.71 19.72 13.41 13.42 19.71 7.12z" />
-                ) : (
-                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-                )}
-              </svg>
-            </button>
-          </div>
-
-          {/* Mobile Menu Items */}
-          {isOpen && (
-            <div className="pb-4 border-t border-primary-500/10 mt-4 pt-4">
-              <div className="space-y-2">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200 ${
-                      isActive(item.path)
-                        ? "bg-primary-500/20 text-primary-500"
-                        : "text-foreground-muted hover:text-foreground hover:bg-primary-500/10"
-                    }`}
-                  >
-                    {item.icon}
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-
-              {/* User Info Mobile */}
-              <div className="mt-4 pt-4 border-t border-primary-500/10">
-                <Link
-                  to="/perfil"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-primary-500/10 rounded-lg transition-colors duration-200"
-                >
-                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile.full_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-foreground text-sm font-bold">
-                        {profile?.full_name?.charAt(0) ||
-                          user?.email?.charAt(0) ||
-                          "U"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-foreground font-medium text-sm">
-                      {profile?.full_name || user?.email}
-                    </p>
-                    <p className="text-foreground-muted text-xs">
-                      {profile?.profile_type || "Usuário"}
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Botão de logout separado */}
-                <Button
-                  variant="transparente"
-                  size="medium"
-                  onClick={handleLogout}
-                  className="w-full justify-start mt-2 text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-                  </svg>
-                  <span className="font-medium">Sair</span>
-                </Button>
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       </nav>
     </>
