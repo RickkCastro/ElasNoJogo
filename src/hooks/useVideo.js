@@ -76,6 +76,7 @@ export const useVideos = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
   // Busca vídeos do banco
   const loadVideos = useCallback(async (page = 0) => {
@@ -84,26 +85,37 @@ export const useVideos = () => {
     try {
       const result = await getVideos(page, VIDEO_CONFIG.FEED.ITEMS_PER_PAGE);
       if (result.success) {
+        const fetched = result.data || [];
         if (page === 0) {
-          setVideos(result.data);
+          setVideos(fetched);
         } else {
-          setVideos((prev) => [...prev, ...result.data]);
+          setVideos((prev) => [...prev, ...fetched]);
         }
+        // se retornou menos que o pageSize, não há mais páginas
+        setHasMore(fetched.length === VIDEO_CONFIG.FEED.ITEMS_PER_PAGE);
+        return fetched.length;
       } else {
         setError(result.error);
+        setHasMore(false);
+        return 0;
       }
     } catch (err) {
       console.error("Erro ao carregar vídeos:", err);
       setError(err.message);
+      setHasMore(false);
+      return 0;
     } finally {
       setLoading(false);
     }
   }, []);
 
+  console.log("Current videos:", videos);
+
   return {
     videos,
     loading,
     error,
+    hasMore,
     loadVideos,
   };
 };

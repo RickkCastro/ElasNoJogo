@@ -141,7 +141,7 @@ export default function Menu() {
         </div>
       </nav>
       {/* Header Mobile */}
-      <header className="md:hidden absolute w-full p-4 flex justify-end">
+      <header className="md:hidden absolute w-full p-4 flex justify-end z-50">
         <Link
           to="/perfil"
           className="hover:bg-primary-500/10 rounded-lg transition-colors duration-200"
