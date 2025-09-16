@@ -7,6 +7,7 @@ import VideoModal from "../../components/VideoModal.jsx";
 import { IoLogOutOutline, IoChevronBack } from "react-icons/io5";
 import useProfileById from "../../hooks/useProfileById.js";
 import { useUserVideos } from "../../hooks/useVideo.js";
+import { useFollowers, useIsFollowing } from "../../hooks/useFollowers.js";
 
 export default function ProfileScreen() {
   const { user, profile, logout } = useUser();
@@ -27,6 +28,20 @@ export default function ProfileScreen() {
   // Busca vídeos do usuário
   const targetUserId = isOwnProfile ? user?.id : id;
   const { videos, loading: videosLoading } = useUserVideos(targetUserId);
+
+  // Hooks para sistema de seguidores
+  const {
+    followersCount,
+    followingCount,
+    loading: followersLoading,
+    refetch: refetchFollowers,
+  } = useFollowers(targetUserId);
+
+  const {
+    isFollowing,
+    loading: followLoading,
+    toggleFollow,
+  } = useIsFollowing(user?.id, !isOwnProfile ? id : null, refetchFollowers);
 
   // Estado para controlar o modal de vídeo
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -139,21 +154,43 @@ export default function ProfileScreen() {
               Editar perfil
             </Button>
           ) : (
-            <Button variant="secundario" size="medium" className="flex-1">
-              Seguir
+            <Button
+              variant={isFollowing ? "secundario" : "principal"}
+              size="medium"
+              className="flex-1"
+              onClick={toggleFollow}
+              disabled={followLoading}
+            >
+              {followLoading ? "..." : isFollowing ? "Seguindo" : "Seguir"}
             </Button>
           )}
         </div>
         {/* Estatísticas */}
         <div className="flex justify-center items-center gap-8 mb-6">
-          <div className="text-center">
-            <span className="font-bold text-lg text-foreground">0</span>
+          <button
+            className="text-center hover:opacity-70 transition-opacity"
+            onClick={() =>
+              navigate(`/perfil/${targetUserId}/followers?tab=following`)
+            }
+            disabled={followersLoading}
+          >
+            <span className="font-bold text-lg text-foreground block">
+              {followersLoading ? "..." : followingCount}
+            </span>
             <p className="text-sm text-foreground-muted">Seguindo</p>
-          </div>
-          <div className="text-center">
-            <span className="font-bold text-lg text-foreground">0</span>
+          </button>
+          <button
+            className="text-center hover:opacity-70 transition-opacity"
+            onClick={() =>
+              navigate(`/perfil/${targetUserId}/followers?tab=followers`)
+            }
+            disabled={followersLoading}
+          >
+            <span className="font-bold text-lg text-foreground block">
+              {followersLoading ? "..." : followersCount}
+            </span>
             <p className="text-sm text-foreground-muted">Seguidores</p>
-          </div>
+          </button>
           <div className="text-center">
             <span className="font-bold text-lg text-foreground">
               {videos.length}

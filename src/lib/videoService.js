@@ -219,3 +219,150 @@ export const updateVideo = async (videoId, { title, description }) => {
     return { success: false, error: error.message };
   }
 };
+
+// Busca vídeos de usuários que o usuário atual está seguindo
+export const getFollowingVideos = async (
+  userId,
+  page = 0,
+  limit = VIDEO_CONFIG.FEED.ITEMS_PER_PAGE
+) => {
+  try {
+    // Primeiro busca os IDs dos usuários que o usuário atual está seguindo
+    const { data: followingData, error: followingError } = await supabase
+      .from("followers")
+      .select("following_id")
+      .eq("follower_id", userId);
+
+    if (followingError) throw followingError;
+
+    const followingIds = followingData.map((f) => f.following_id);
+
+    // Se não está seguindo ninguém, retorna array vazio
+    if (followingIds.length === 0) {
+      return {
+        success: true,
+        data: [],
+        hasMore: false,
+      };
+    }
+
+    // Busca vídeos primeiro
+    const { data: videosData, error: videosError } = await supabase
+      .from("videos")
+      .select("*")
+      .in("user_id", followingIds)
+      .order("created_at", { ascending: false })
+      .range(page * limit, (page + 1) * limit - 1);
+
+    if (videosError) throw videosError;
+
+    // Se não há vídeos, retorna array vazio
+    if (!videosData || videosData.length === 0) {
+      return {
+        success: true,
+        data: [],
+        hasMore: false,
+      };
+    }
+
+    // Busca profiles dos usuários dos vídeos
+    const userIds = [...new Set(videosData.map((v) => v.user_id))];
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url")
+      .in("id", userIds);
+
+    if (profilesError) throw profilesError;
+
+    // Cria um mapa de profiles para lookup rápido
+    const profilesMap = (profilesData || []).reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {});
+
+    // Combina vídeos com profiles
+    const videos = videosData.map((video) => ({
+      ...video,
+      user: {
+        id: video.user_id,
+        avatar_url: profilesMap[video.user_id]?.avatar_url,
+        full_name: profilesMap[video.user_id]?.full_name,
+        username: profilesMap[video.user_id]?.username,
+      },
+    }));
+
+    return {
+      success: true,
+      data: videos,
+      hasMore: videosData?.length === limit,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar vídeos dos seguidos:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const incrementVideoViews = async (videoId) => {
+  try {
+    const { error } = await supabase.rpc("increment_video_views", {
+      video_id: videoId,
+    });
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error("Erro ao incrementar visualização:", err);
+    return false;
+  }
+};
+
+// Verifica se o usuário curtiu o vídeo
+export const isVideoLiked = async (videoId, userId) => {
+  const { data, error } = await supabase
+    .from("video_likes")
+    .select("id")
+    .eq("video_id", videoId)
+    .eq("user_id", userId)
+    .single();
+  if (error && error.code !== "PGRST116") throw error;
+  return !!data;
+};
+
+// Dá like no vídeo
+export const likeVideo = async (videoId, userId) => {
+  const { error } = await supabase
+    .from("video_likes")
+    .insert({ video_id: videoId, user_id: userId });
+  if (error) throw error;
+  // Atualiza contador de likes
+  await supabase
+    .from("videos")
+    .update({ likes_count: supabase.rpc("increment", { x: 1 }) })
+    .eq("id", videoId);
+  return true;
+};
+
+// Remove o like do vídeo
+export const unlikeVideo = async (videoId, userId) => {
+  const { error } = await supabase
+    .from("video_likes")
+    .delete()
+    .eq("video_id", videoId)
+    .eq("user_id", userId);
+  if (error) throw error;
+  // Atualiza contador de likes
+  await supabase
+    .from("videos")
+    .update({ likes_count: supabase.rpc("decrement", { x: 1 }) })
+    .eq("id", videoId);
+  return true;
+};
+
+// Conta total de likes do vídeo
+export const getVideoLikesCount = async (videoId) => {
+  const { count, error } = await supabase
+    .from("video_likes")
+    .select("*", { count: "exact", head: true })
+    .eq("video_id", videoId);
+  if (error) throw error;
+  return count || 0;
+};
