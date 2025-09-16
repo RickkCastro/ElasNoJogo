@@ -9,7 +9,7 @@ export default function UserProvider({ children }) {
   const [error] = useState(null);
 
   useEffect(() => {
-    // Função para buscar perfil
+    // Busca perfil do usuário logado
     async function fetchProfile(userId) {
       if (!userId) return null;
       const { data: profileData } = await supabase
@@ -20,7 +20,7 @@ export default function UserProvider({ children }) {
       return profileData;
     }
 
-    // Função para atualizar perfil baseado na sessão
+    // Atualiza perfil baseado na sessão
     async function updateProfile(currentSession) {
       if (currentSession?.user) {
         const profileData = await fetchProfile(currentSession.user.id);
@@ -31,13 +31,13 @@ export default function UserProvider({ children }) {
       setLoading(false);
     }
 
-    // Inicialização - buscar sessão atual
+    // Inicializa: busca sessão atual
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       updateProfile(session);
     });
 
-    // Listener de mudanças de auth
+    // Listener de mudanças de autenticação
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -48,11 +48,12 @@ export default function UserProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Logout do usuário
   const logout = async () => {
     await supabase.auth.signOut();
   };
 
-  // Extrair user da session para compatibilidade
+  // Extrai user da session para compatibilidade
   const user = session?.user || null;
 
   return (

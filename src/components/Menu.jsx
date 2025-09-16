@@ -7,10 +7,12 @@ export default function Menu() {
   const { user, profile, logout } = useUser();
   const location = useLocation();
 
+  // Realiza logout
   const handleLogout = async () => {
     await logout();
   };
 
+  // Itens do menu principal
   const menuItems = [
     {
       name: "Feed",
@@ -50,7 +52,7 @@ export default function Menu() {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-          ></path>{" "}
+          ></path>
         </svg>
       ),
     },
@@ -61,6 +63,7 @@ export default function Menu() {
     },
   ];
 
+  // Verifica se rota está ativa
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -76,8 +79,7 @@ export default function Menu() {
                 Elas No Jogo
               </span>
             </div>
-
-            {/* Menu Items */}
+            {/* Itens do menu */}
             <div className="flex items-center gap-5">
               {menuItems.map((item) => (
                 <Link
@@ -94,8 +96,7 @@ export default function Menu() {
                 </Link>
               ))}
             </div>
-
-            {/* User Menu */}
+            {/* Menu do usuário */}
             <div className="flex items-center gap-4">
               <Link
                 to="/perfil"
@@ -120,7 +121,6 @@ export default function Menu() {
                   {profile?.full_name || user?.email}
                 </span>
               </Link>
-
               <Button
                 variant="transparente"
                 size="small"
@@ -140,8 +140,7 @@ export default function Menu() {
           </div>
         </div>
       </nav>
-
-      {/* Header Mobile - Apenas logo e perfil */}
+      {/* Header Mobile */}
       <header className="md:hidden absolute w-full p-4 flex justify-end">
         <Link
           to="/perfil"
@@ -162,8 +161,7 @@ export default function Menu() {
           </div>
         </Link>
       </header>
-
-      {/* Bottom Navigation Mobile - Estilo TikTok */}
+      {/* Bottom Navigation Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background-light border-t border-primary-500/20 z-50">
         <div className="flex items-center justify-around px-2 py-2">
           {menuItems.map((item) => (
