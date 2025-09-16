@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Para a navegação do botão Sair
-// Importe o seu componente Button
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import useUser from "../../hooks/useUser";
+import supabase from "../../lib/supabaseClient";
 import Button from '../../components/Button.jsx'; 
-// Ícones
 import { 
   BsGrid3X3, 
   BsBookmark, 
@@ -11,26 +11,68 @@ import {
 } from "react-icons/bs";
 import { IoLogOutOutline } from "react-icons/io5";
 
-const userData = {
-  username: 'TaliahOliveira',
-  name: 'Taliah Oliveira',
-  avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Lewes_FC_Women_0_West_Ham_Utd_Women_5_pre_season_12_08_2018-614_%2829081676397%29_%28cropped%29.jpg',
-  following: 198,
-  followers: 260,
-  likes: 1910,
-  bio: 'Me aventurando no mundo do futebol!! 🤸‍♀️⚽️ #FutebolFeminino #GirlPower'
-};
-
 const videos = Array(12).fill(1); 
 
 export default function ProfileScreen() {
+  const { user } = useUser();
   const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState({
+      username: "",
+      full_name: "",
+      bio: "",
+      profile_type: "",
+      avatar_url: "",
+    });
+
   const [activeTab, setActiveTab] = useState('grid');
 
-  const handleLogout = () => {
-    console.log("Saindo e redirecionando para a página inicial...");
+  useEffect(() => {
+      const fetchProfile = async () => {
+        if (!user) return;
+
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("username, full_name, bio, profile_type, avatar_url")
+            .eq("id", user.id)
+            .single();
+
+          if (error) throw error;
+          if (data) {
+            setFormData(data);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar perfil:", error);
+        }
+      };
+
+      fetchProfile();
+    }, [user]);
+
+  const userData = {
+    username: user?.username,
+    name: user?.full_name,
+    avatarUrl: user?.avatar_url,
+    following: user?.following ?? 0,
+    followers: user?.followers ?? 0,
+    likes: user?.likes ?? 0,
+    bio: user?.bio
+  };
+
+  const handleLogout = async () => {
+    console.log("Saindo...");
+    await supabase.auth.signOut();
     navigate('/'); 
   };
+
+  if (!user) {
+    return (
+      <div className="bg-[#21212B] text-white min-h-screen flex items-center justify-center">
+        <p>Carregando perfil...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#21212B] text-white min-h-screen font-sans"> 
@@ -38,7 +80,7 @@ export default function ProfileScreen() {
 
         {/* --- CABEÇALHO SUPERIOR --- */}
         <header className="flex justify-between items-center py-2 px-4">
-          <h1 className="text-xl font-bold">@{userData.username}</h1>
+          <h1 className="text-xl font-bold">{formData.username}</h1>
           <Button
             variant="transparente"
             size="small"
@@ -53,12 +95,12 @@ export default function ProfileScreen() {
         {/* --- SEÇÃO PRINCIPAL DO PERFIL --- */}
         <section className="flex flex-col items-center my-8 px-4"> 
           <img
-            src={userData.avatarUrl}
+            src={formData.avatar_ur}
             alt="Avatar do perfil"
             className="w-28 h-28 rounded-full object-cover border-2 border-transparent" 
           />
           
-          {/* Estatísticas - Ajustado para alinhar melhor */}
+          {/* Estatísticas */}
           <div className="flex justify-center items-center gap-6 mt-6 text-base">
               <div className="text-center">
                 <span className="font-bold text-lg">{userData.following}</span>
@@ -76,17 +118,21 @@ export default function ProfileScreen() {
           
           {/* Nome e Bio */}
           <div className="mt-6 text-center">
-            <h2 className="font-semibold text-lg">{userData.name}</h2>
-            <p className="text-neutral-300 text-sm max-w-sm mt-1">{userData.bio}</p>
+            <h2 className="font-semibold text-lg">{formData.full_name}</h2>
+            <p className="text-neutral-300 text-sm max-w-sm mt-1">{formData.bio}</p>
           </div>
         </section>
 
         {/* --- BOTÕES DE AÇÃO --- */}
         <section className="flex items-center gap-3 mb-6 px-4">
-          <Button variant="editar" size="medium" className="flex-1 py-3 text-base">
+          <Button 
+            variant="principal" 
+            size="medium" 
+            className="flex-1 py-3"
+            onClick={() => navigate('/editar-perfil')}>
             Editar perfil
           </Button>
-          <Button variant="seguir" size="medium" className="flex-1 py-3 text-base">
+          <Button variant="secundario" size="medium" className="flex-1 py-3">
             Seguir perfil
           </Button>
         </section>
@@ -96,24 +142,21 @@ export default function ProfileScreen() {
           <button 
             onClick={() => setActiveTab('grid')}
             className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'grid' ? 'border-b-2 border-white text-white' : ''}
-                        -mb-px`}
+                        ${activeTab === 'grid' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
           >
             <BsGrid3X3 size={20} />
           </button>
           <button 
             onClick={() => setActiveTab('saved')}
             className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'saved' ? 'border-b-2 border-white text-white' : ''}
-                        -mb-px`}
+                        ${activeTab === 'saved' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
           >
             <BsBookmark size={20} />
           </button>
           <button 
             onClick={() => setActiveTab('liked')}
             className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'liked' ? 'border-b-2 border-white text-white' : ''}
-                        -mb-px`}
+                        ${activeTab === 'liked' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
           >
             <BsHeart size={20} />
           </button>

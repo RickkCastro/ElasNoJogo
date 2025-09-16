@@ -10,7 +10,7 @@ export default function Button({
   ...props
 }) {
   const baseStyles =
-    "font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 disabled:cursor-not-allowed";
+  "font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed";
 
   const variantStyles = {
     principal: `
@@ -39,16 +39,6 @@ export default function Button({
       text-foreground-muted hover:text-foreground 
       focus:ring-primary-500
       disabled:bg-transparent disabled:text-foreground-muted/50 disabled:hover:bg-transparent disabled:hover:text-foreground-muted/50
-    `,
-     editar: `
-      bg-[#D48CF8] hover:bg-[#C17CDD] active:bg-[#A96ABF] 
-      text-black font-semibold focus:ring-[#D48CF8]
-      disabled:bg-[#D48CF8]/50 disabled:hover:bg-[#D48CF8]/50
-    `,
-    seguir: `
-      bg-[#03BB85] hover:bg-[#02A775] active:bg-[#028F65]
-      text-white font-semibold focus:ring-[#03BB85]
-      disabled:bg-[#03BB85]/50 disabled:hover:bg-[#03BB85]/50
     `,
   };
 
