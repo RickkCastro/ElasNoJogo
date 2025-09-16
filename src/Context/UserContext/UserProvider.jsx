@@ -3,76 +3,60 @@ import { UserContext } from "./UserContext";
 import supabase from "../../lib/supabaseClient";
 
 export default function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
 
   useEffect(() => {
-    const loadingTimeout = setTimeout(() => {
-      setError("Timeout ao carregar dados do usuário.");
-    }, 10000); // 10 segundos
-
-    // Função utilitária para buscar perfil
+    // Função para buscar perfil
     async function fetchProfile(userId) {
       if (!userId) return null;
-      const { data: profileData, error } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
-      return error ? null : profileData;
+      return profileData;
     }
 
-    async function fetchUserAndProfile() {
-      try {
-        setError(null);
-        const { data, error: authError } = await supabase.auth.getUser();
-        if (authError) throw authError;
-
-        setUser(data.user);
-        const profileData = await fetchProfile(data.user?.id);
+    // Função para atualizar perfil baseado na sessão
+    async function updateProfile(currentSession) {
+      if (currentSession?.user) {
+        const profileData = await fetchProfile(currentSession.user.id);
         setProfile(profileData);
-      } catch (err) {
-        console.error("Error fetching user and profile:", err);
-        setError(err.message);
-        setUser(null);
+      } else {
         setProfile(null);
-      } finally {
-        setLoading(false);
-        clearTimeout(loadingTimeout);
       }
+      setLoading(false);
     }
 
-    fetchUserAndProfile();
+    // Inicialização - buscar sessão atual
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      updateProfile(session);
+    });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        try {
-          setError(null);
-          // Não definir loading=true aqui para evitar travamento
-          setUser(session?.user ?? null);
-          const profileData = await fetchProfile(session?.user?.id);
-          setProfile(profileData);
-        } catch (err) {
-          console.error("Error in auth state change:", err);
-          setError(err.message);
-          setUser(null);
-          setProfile(null);
-        }
-        // Garantir que loading seja false após qualquer mudança de estado
-        setLoading(false);
-      }
-    );
+    // Listener de mudanças de auth
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      updateProfile(session);
+    });
 
-    return () => {
-      clearTimeout(loadingTimeout);
-      listener.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Extrair user da session para compatibilidade
+  const user = session?.user || null;
+
   return (
-    <UserContext.Provider value={{ user, profile, loading, error }}>
+    <UserContext.Provider value={{ user, profile, loading, error, logout }}>
       {children}
     </UserContext.Provider>
   );

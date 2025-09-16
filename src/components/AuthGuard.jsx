@@ -1,12 +1,12 @@
 import { Navigate, useLocation } from "react-router-dom";
 import useAuthRedirect from "../hooks/useAuthRedirect";
-import Loading from "../components/Loading";
+import Loading from "./Loading";
 
-export default function ProtectedRoute({ children }) {
+export default function AuthGuard({ children }) {
   const { status } = useAuthRedirect();
   const location = useLocation();
 
-  if (status === "loading")
+  if (status === "loading") {
     return (
       <Loading
         showText={true}
@@ -15,6 +15,7 @@ export default function ProtectedRoute({ children }) {
         text="Carregando..."
       />
     );
+  }
 
   // Não autenticado: só pode acessar /login
   if (status === "unauthenticated") {
