@@ -13,7 +13,7 @@ export default function Login() {
       <div className="w-full max-w-sm mx-auto">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <img src="public/logo.png" alt="logo" className="mx-auto mb-4" />
+          <img src="/logo.png" alt="logo" className="mx-auto mb-4" />
           <h1 className="text-3xl md:text-4xl font-bold text-primary-500 mb-4">
             Elas No Jogo
           </h1>
