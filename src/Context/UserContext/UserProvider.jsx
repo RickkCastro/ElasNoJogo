@@ -57,7 +57,9 @@ export default function UserProvider({ children }) {
   const user = session?.user || null;
 
   return (
-    <UserContext.Provider value={{ user, profile, loading, error, logout }}>
+    <UserContext.Provider
+      value={{ user, profile, loading, error, logout, setProfile }}
+    >
       {children}
     </UserContext.Provider>
   );

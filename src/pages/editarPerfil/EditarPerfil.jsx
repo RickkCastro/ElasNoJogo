@@ -6,7 +6,7 @@ import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 
 export default function EditarPerfil() {
-  const { user } = useUser();
+  const { user, setProfile } = useUser();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -79,6 +79,9 @@ export default function EditarPerfil() {
 
       if (error) throw error;
 
+      // Atualiza o contexto global do usuário
+      setProfile((prev) => ({ ...prev, ...updatedProfile }));
+
       setIsDialogOpen(true);
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
@@ -91,11 +94,11 @@ export default function EditarPerfil() {
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <DialogComponents
         isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={() => navigate("/perfil")}
         title="Perfil Atualizado!"
         description="Suas informações foram salvas com sucesso."
         btText2="Voltar ao Perfil"
-        btAction02={() => navigate(-1)}
+        btAction02={() => navigate("/perfil")}
       />
 
       <div className="w-full max-w-md mx-auto">
@@ -120,35 +123,106 @@ export default function EditarPerfil() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <svg className="w-8 h-8 text-foreground-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg
+                      className="w-8 h-8 text-foreground-muted"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
                   )}
                 </div>
-                <label htmlFor="profile-image" className="absolute -bottom-2 -right-2 bg-secondary-500 hover:bg-secondary-600 text-foreground rounded-full p-2 cursor-pointer transition-colors shadow-lg">
-                  <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24"><path d="M4 12H20M12 4V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                <label
+                  htmlFor="profile-image"
+                  className="absolute -bottom-2 -right-2 bg-secondary-500 hover:bg-secondary-600 text-foreground rounded-full p-2 cursor-pointer transition-colors shadow-lg"
+                >
+                  <svg
+                    className="w-4 h-4 text-foreground-muted"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M4 12H20M12 4V20"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                  </svg>
                 </label>
-                <input id="profile-image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                <input
+                  id="profile-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Nome de usuário</label>
-              <input type="text" name="username" value={formData.username} onChange={handleInputChange} required className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors" placeholder="@seuusername" />
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Nome de usuário
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                required
+                className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors"
+                placeholder="@seuusername"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Nome completo</label>
-              <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} required className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors" placeholder="Seu nome completo" />
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Nome completo
+              </label>
+              <input
+                type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleInputChange}
+                required
+                className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors"
+                placeholder="Seu nome completo"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Biografia</label>
-              <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows={4} maxLength={200} className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors resize-none" placeholder="Conte um pouco sobre você..."></textarea>
-              <p className="text-xs text-foreground-subtle mt-1">{formData.bio.length}/200 caracteres</p>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Biografia
+              </label>
+              <textarea
+                name="bio"
+                value={formData.bio}
+                onChange={handleInputChange}
+                rows={4}
+                maxLength={200}
+                className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors resize-none"
+                placeholder="Conte um pouco sobre você..."
+              ></textarea>
+              <p className="text-xs text-foreground-subtle mt-1">
+                {formData.bio.length}/200 caracteres
+              </p>
             </div>
 
             <div className="flex flex-col gap-4 items-center">
-              <Button type="submit" disabled={loading} loading={loading} className="w-full" size="large" variant="principal">
+              <Button
+                type="submit"
+                disabled={loading}
+                loading={loading}
+                className="w-full"
+                size="large"
+                variant="principal"
+              >
                 Salvar Alterações
               </Button>
-              <Button variant="cancelar" size="medium" className="w-40" onClick={() => navigate(-1)}>
+              <Button
+                variant="cancelar"
+                size="medium"
+                className="w-40"
+                onClick={() => navigate("/perfil")}
+              >
                 Cancelar
               </Button>
             </div>

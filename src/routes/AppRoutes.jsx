@@ -14,6 +14,7 @@ export default function AppRoutes() {
       <Route path="/jogos" element={<Jogos />} />
       <Route path="/seguindo" element={<Seguindo />} />
       <Route path="/perfil" element={<Perfil />} />
+      <Route path="/perfil/:id" element={<Perfil />} />
       <Route path="/editar-perfil" element={<EditarPerfil />} />
       <Route path="/postar" element={<Postar />} />
       <Route path="*" element={<NotFound />} />
