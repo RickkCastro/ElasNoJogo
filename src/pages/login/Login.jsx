@@ -1,10 +1,7 @@
-import "./login.css";
-import useUser from "../../hooks/useUser";
 import Button from "../../components/Button";
+import supabase from "../../lib/supabaseClient";
 
 export default function Login() {
-  const { supabase } = useUser();
-
   function loginWithGoogle() {
     supabase.auth.signInWithOAuth({
       provider: "google",

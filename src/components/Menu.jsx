@@ -4,13 +4,15 @@ import Button from "./Button";
 import { MdOutlineStadium } from "react-icons/md";
 
 export default function Menu() {
-  const { user, profile, supabase } = useUser();
+  const { user, profile, logout } = useUser();
   const location = useLocation();
 
+  // Realiza logout
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
   };
 
+  // Itens do menu principal
   const menuItems = [
     {
       name: "Feed",
@@ -18,25 +20,6 @@ export default function Menu() {
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" />
-        </svg>
-      ),
-    },
-    {
-      name: "Postar",
-      path: "/postar",
-      icon: (
-        <svg
-          className="w-4 h-4 text-foreground-muted"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M4 12H20M12 4V20"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          ></path>{" "}
         </svg>
       ),
     },
@@ -55,12 +38,32 @@ export default function Menu() {
       ),
     },
     {
+      name: "Postar",
+      path: "/postar",
+      icon: (
+        <svg
+          className="w-4 h-4 text-foreground-muted"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M4 12H20M12 4V20"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+      ),
+    },
+    {
       name: "Jogos",
       path: "/jogos",
       icon: <MdOutlineStadium />,
     },
   ];
 
+  // Verifica se rota está ativa
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -76,9 +79,8 @@ export default function Menu() {
                 Elas No Jogo
               </span>
             </div>
-
-            {/* Menu Items */}
-            <div className="flex items-center gap-8">
+            {/* Itens do menu */}
+            <div className="flex items-center gap-5">
               {menuItems.map((item) => (
                 <Link
                   key={item.name}
@@ -94,8 +96,7 @@ export default function Menu() {
                 </Link>
               ))}
             </div>
-
-            {/* User Menu */}
+            {/* Menu do usuário */}
             <div className="flex items-center gap-4">
               <Link
                 to="/perfil"
@@ -120,7 +121,6 @@ export default function Menu() {
                   {profile?.full_name || user?.email}
                 </span>
               </Link>
-
               <Button
                 variant="transparente"
                 size="small"
@@ -140,9 +140,8 @@ export default function Menu() {
           </div>
         </div>
       </nav>
-
-      {/* Header Mobile - Apenas logo e perfil */}
-      <header className="md:hidden absolute w-full p-4 flex justify-end">
+      {/* Header Mobile */}
+      <header className="md:hidden absolute w-full p-4 flex justify-end z-50">
         <Link
           to="/perfil"
           className="hover:bg-primary-500/10 rounded-lg transition-colors duration-200"
@@ -162,8 +161,7 @@ export default function Menu() {
           </div>
         </Link>
       </header>
-
-      {/* Bottom Navigation Mobile - Estilo TikTok */}
+      {/* Bottom Navigation Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background-light border-t border-primary-500/20 z-50">
         <div className="flex items-center justify-around px-2 py-2">
           {menuItems.map((item) => (
