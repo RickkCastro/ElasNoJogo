@@ -9,11 +9,8 @@ export default function UserProvider({ children }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Timeout de segurança para garantir que loading nunca trave
     const loadingTimeout = setTimeout(() => {
-      console.warn("Loading timeout - forçando loading = false");
       setError("Timeout ao carregar dados do usuário.");
-      setLoading(false);
     }, 10000); // 10 segundos
 
     // Função utilitária para buscar perfil
