@@ -40,6 +40,16 @@ export default function Button({
       focus:ring-primary-500
       disabled:bg-transparent disabled:text-foreground-muted/50 disabled:hover:bg-transparent disabled:hover:text-foreground-muted/50
     `,
+     editar: `
+      bg-[#D48CF8] hover:bg-[#C17CDD] active:bg-[#A96ABF] 
+      text-black font-semibold focus:ring-[#D48CF8]
+      disabled:bg-[#D48CF8]/50 disabled:hover:bg-[#D48CF8]/50
+    `,
+    seguir: `
+      bg-[#03BB85] hover:bg-[#02A775] active:bg-[#028F65]
+      text-white font-semibold focus:ring-[#03BB85]
+      disabled:bg-[#03BB85]/50 disabled:hover:bg-[#03BB85]/50
+    `,
   };
 
   const sizeStyles = {
