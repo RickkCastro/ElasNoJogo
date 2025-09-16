@@ -301,3 +301,68 @@ export const getFollowingVideos = async (
     return { success: false, error: error.message };
   }
 };
+
+export const incrementVideoViews = async (videoId) => {
+  try {
+    const { error } = await supabase.rpc("increment_video_views", {
+      video_id: videoId,
+    });
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.error("Erro ao incrementar visualização:", err);
+    return false;
+  }
+};
+
+// Verifica se o usuário curtiu o vídeo
+export const isVideoLiked = async (videoId, userId) => {
+  const { data, error } = await supabase
+    .from("video_likes")
+    .select("id")
+    .eq("video_id", videoId)
+    .eq("user_id", userId)
+    .single();
+  if (error && error.code !== "PGRST116") throw error;
+  return !!data;
+};
+
+// Dá like no vídeo
+export const likeVideo = async (videoId, userId) => {
+  const { error } = await supabase
+    .from("video_likes")
+    .insert({ video_id: videoId, user_id: userId });
+  if (error) throw error;
+  // Atualiza contador de likes
+  await supabase
+    .from("videos")
+    .update({ likes_count: supabase.rpc("increment", { x: 1 }) })
+    .eq("id", videoId);
+  return true;
+};
+
+// Remove o like do vídeo
+export const unlikeVideo = async (videoId, userId) => {
+  const { error } = await supabase
+    .from("video_likes")
+    .delete()
+    .eq("video_id", videoId)
+    .eq("user_id", userId);
+  if (error) throw error;
+  // Atualiza contador de likes
+  await supabase
+    .from("videos")
+    .update({ likes_count: supabase.rpc("decrement", { x: 1 }) })
+    .eq("id", videoId);
+  return true;
+};
+
+// Conta total de likes do vídeo
+export const getVideoLikesCount = async (videoId) => {
+  const { count, error } = await supabase
+    .from("video_likes")
+    .select("*", { count: "exact", head: true })
+    .eq("video_id", videoId);
+  if (error) throw error;
+  return count || 0;
+};
