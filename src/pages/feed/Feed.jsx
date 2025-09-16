@@ -6,6 +6,7 @@ import {
   formatViews,
   formatDuration,
 } from "../../lib/videoConfig";
+import { Link } from "react-router-dom";
 
 export default function Feed() {
   // Hook customizado para buscar vídeos paginados
@@ -183,6 +184,27 @@ export default function Feed() {
             className="relative w-full snap-start flex items-center justify-center bg-black h-screen md:h-[calc(100vh-64px)]"
           >
             <div className="relative h-full w-full mx-auto max-w-none md:max-w-[640px] lg:max-w-[720px]">
+              <div className="absolute bottom-26 md:bottom-44 right-4 z-20 flex flex-col items-end">
+                <Link
+                  to={`/perfil/${video.user.id}`}
+                  className="rounded-full border-2 border-white shadow-lg w-12 h-12 flex items-center justify-center bg-background/80 hover:scale-105 transition-transform"
+                  title="Ver perfil"
+                >
+                  {video.user?.avatar_url ? (
+                    <img
+                      src={video.user.avatar_url}
+                      alt="Avatar do usuário"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-foreground text-sm font-bold">
+                      {video.user?.full_name?.charAt(0) ||
+                        video.user?.email?.charAt(0) ||
+                        "U"}
+                    </span>
+                  )}
+                </Link>
+              </div>
               <video
                 ref={(el) => (videoRefs.current[idx] = el)}
                 src={video.video_url}
@@ -205,7 +227,10 @@ export default function Feed() {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/60 to-transparent" />
               {/* Overlay de informações do vídeo */}
               <div className="absolute left-0 right-0 px-4 text-left bottom-24 md:bottom-6">
-                <h3 className="text-foreground text-lg font-semibold truncate">
+                <p className="text-foreground-muted font-semibold mb-1">
+                  @{video.user.username}
+                </p>
+                <h3 className="text-foreground text-lg font-bold truncate">
                   {video.title || "Sem título"}
                 </h3>
                 <p className="text-foreground-muted text-sm line-clamp-5">

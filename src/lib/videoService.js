@@ -37,21 +37,33 @@ export const createVideo = async ({
   }
 };
 
-// Busca vídeos paginados
+// Busca vídeos paginados, incluindo id e avatar_url do perfil do usuário
 export const getVideos = async (
   page = 0,
   limit = VIDEO_CONFIG.FEED.ITEMS_PER_PAGE
 ) => {
   try {
-    const { data, error } = await supabase
-      .from("videos")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .range(page * limit, (page + 1) * limit - 1);
+    const { data, error } = await supabase.rpc("get_videos_with_profiles", {
+      page_offset: page * limit,
+      page_limit: limit,
+    });
+
     if (error) throw error;
+
+    // Transforma os dados para o formato esperado pelo front-end
+    const videos = (data || []).map((video) => ({
+      ...video,
+      user: {
+        id: video.profile_id,
+        avatar_url: video.avatar_url,
+        full_name: video.full_name,
+        username: video.username,
+      },
+    }));
+
     return {
       success: true,
-      data: data || [],
+      data: videos,
       hasMore: data?.length === limit,
     };
   } catch (error) {

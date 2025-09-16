@@ -109,8 +109,6 @@ export const useVideos = () => {
     }
   }, []);
 
-  console.log("Current videos:", videos);
-
   return {
     videos,
     loading,
