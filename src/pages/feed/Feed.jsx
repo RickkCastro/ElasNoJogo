@@ -184,7 +184,7 @@ export default function Feed() {
             className="relative w-full snap-start flex items-center justify-center bg-black h-screen md:h-[calc(100vh-64px)]"
           >
             <div className="relative h-full w-full mx-auto max-w-none md:max-w-[640px] lg:max-w-[720px]">
-              <div className="absolute bottom-26 md:bottom-44 right-4 z-20 flex flex-col items-end">
+              <div className="absolute bottom-50 md:bottom-30 right-4 z-20 flex flex-col items-end">
                 <Link
                   to={`/perfil/${video.user.id}`}
                   className="rounded-full border-2 border-white shadow-lg w-12 h-12 flex items-center justify-center bg-background/80 hover:scale-105 transition-transform"
@@ -224,7 +224,7 @@ export default function Feed() {
                 }
               />
               {/* Gradiente escuro para legibilidade do texto */}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-55 bg-gradient-to-t from-black to-transparent" />
               {/* Overlay de informações do vídeo */}
               <div className="absolute left-0 right-0 px-4 text-left bottom-24 md:bottom-6">
                 <p className="text-foreground-muted font-semibold mb-1">
