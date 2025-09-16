@@ -1,185 +1,225 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
 import useUser from "../../hooks/useUser";
-import supabase from "../../lib/supabaseClient";
-import Button from '../../components/Button.jsx'; 
-import { 
-  BsGrid3X3, 
-  BsBookmark, 
-  BsHeart,
-  BsPersonVideo
-} from "react-icons/bs";
-import { IoLogOutOutline } from "react-icons/io5";
-
-const videos = Array(12).fill(1); 
+import Loading from "../../components/Loading.jsx";
+import Button from "../../components/Button.jsx";
+import VideoModal from "../../components/VideoModal.jsx";
+import { IoLogOutOutline, IoChevronBack } from "react-icons/io5";
+import useProfileById from "../../hooks/useProfileById.js";
+import { useUserVideos } from "../../hooks/useVideo.js";
 
 export default function ProfileScreen() {
-  const { user } = useUser();
+  const { user, profile, logout } = useUser();
   const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState({
-      username: "",
-      full_name: "",
-      bio: "",
-      profile_type: "",
-      avatar_url: "",
-    });
+  const { id } = useParams();
 
-  const [activeTab, setActiveTab] = useState('grid');
+  // Determina se estamos vendo o próprio perfil ou o de outro usuário
+  const isOwnProfile = !id || (user && id === user.id);
 
-  useEffect(() => {
-      const fetchProfile = async () => {
-        if (!user) return;
+  // Busca perfil de outro usuário se necessário
+  const { profile: otherProfile, loading: otherProfileLoading } =
+    useProfileById(!isOwnProfile && id ? id : null);
 
-        try {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("username, full_name, bio, profile_type, avatar_url")
-            .eq("id", user.id)
-            .single();
+  // Perfil a ser exibido (próprio perfil ou de outro usuário)
+  const displayProfile = isOwnProfile ? profile : otherProfile;
+  const profileLoading = isOwnProfile ? !user || !profile : otherProfileLoading;
 
-          if (error) throw error;
-          if (data) {
-            setFormData(data);
-          }
-        } catch (error) {
-          console.error("Erro ao buscar perfil:", error);
-        }
-      };
+  // Busca vídeos do usuário
+  const targetUserId = isOwnProfile ? user?.id : id;
+  const { videos, loading: videosLoading } = useUserVideos(targetUserId);
 
-      fetchProfile();
-    }, [user]);
+  // Estado para controlar o modal de vídeo
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const userData = {
-    username: user?.username,
-    name: user?.full_name,
-    avatarUrl: user?.avatar_url,
-    following: user?.following ?? 0,
-    followers: user?.followers ?? 0,
-    likes: user?.likes ?? 0,
-    bio: user?.bio
+  const handleOpenVideo = (video) => {
+    setSelectedVideo(video);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedVideo(null);
   };
 
   const handleLogout = async () => {
-    console.log("Saindo...");
-    await supabase.auth.signOut();
-    navigate('/'); 
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
-  if (!user) {
+  // Estados de carregamento
+  if (profileLoading) {
+    return <Loading />;
+  }
+
+  // Se não encontrou perfil para ID específico
+  if (id && !isOwnProfile && !displayProfile) {
     return (
-      <div className="bg-[#21212B] text-white min-h-screen flex items-center justify-center">
-        <p>Carregando perfil...</p>
+      <div className="relative min-h-screen bg-background">
+        <div className="h-screen md:h-[calc(100vh-64px)] flex items-center justify-center">
+          <p className="text-foreground-muted">Usuário não encontrado</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#21212B] text-white min-h-screen font-sans"> 
-      <div className="max-w-4xl mx-auto p-4">
-
-        {/* --- CABEÇALHO SUPERIOR --- */}
-        <header className="flex justify-between items-center py-2 px-4">
-          <h1 className="text-xl font-bold">{formData.username}</h1>
+    <div className="relative min-h-screen bg-background flex flex-col">
+      {/* Header centralizado, não fixo */}
+      <header className="flex items-center justify-between px-4 py-4 mb-4 w-full max-w-lg mx-auto">
+        <Button
+          variant="transparente"
+          size="small"
+          onClick={() => navigate("/")}
+          className="p-2"
+        >
+          <IoChevronBack size={22} />
+        </Button>
+        <div className="flex-1 flex justify-center">
+          <span className="text-2xl font-bold text-foreground tracking-tight select-none">
+            {isOwnProfile ? "Perfil" : displayProfile?.full_name || "Perfil"}
+          </span>
+        </div>
+        {isOwnProfile ? (
           <Button
             variant="transparente"
             size="small"
             onClick={handleLogout}
-            className="flex items-center gap-1 text-neutral-300 hover:text-red-500" 
+            className="p-2 text-red-500 hover:bg-red-500/10"
           >
-            <span className="font-semibold text-base">Sair</span>
-            <IoLogOutOutline size={20} />
+            <IoLogOutOutline size={22} />
           </Button>
-        </header>
+        ) : (
+          <div className="w-10 h-10" />
+        )}
+      </header>
 
-        {/* --- SEÇÃO PRINCIPAL DO PERFIL --- */}
-        <section className="flex flex-col items-center my-8 px-4"> 
-          <img
-            src={formData.avatar_ur}
-            alt="Avatar do perfil"
-            className="w-28 h-28 rounded-full object-cover border-2 border-transparent" 
-          />
-          
-          {/* Estatísticas */}
-          <div className="flex justify-center items-center gap-6 mt-6 text-base">
-              <div className="text-center">
-                <span className="font-bold text-lg">{userData.following}</span>
-                <p className="text-sm text-neutral-400">Seguindo</p>
-              </div>
-              <div className="text-center">
-                <span className="font-bold text-lg">{userData.followers}</span>
-                <p className="text-sm text-neutral-400">Seguidores</p>
-              </div>
-              <div className="text-center">
-                <span className="font-bold text-lg">{userData.likes}</span>
-                <p className="text-sm text-neutral-400">Curtidas</p>
-              </div>
+      {/* Conteúdo do perfil */}
+      <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 pb-8">
+        <div className="w-28 h-28 rounded-full bg-primary-500/80 border-2 border-primary/30 flex items-center justify-center mb-4">
+          {displayProfile?.avatar_url ? (
+            <img
+              src={displayProfile.avatar_url}
+              alt={
+                displayProfile.full_name ||
+                (isOwnProfile ? user.email : "Usuário")
+              }
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-foreground text-2xl font-bold">
+              {displayProfile?.full_name?.charAt(0) ||
+                (isOwnProfile ? user?.email?.charAt(0) : "U") ||
+                "U"}
+            </span>
+          )}
+        </div>
+        <h2 className="font-semibold text-lg text-foreground mb-1">
+          {displayProfile?.full_name || (isOwnProfile ? user.email : "Usuário")}
+        </h2>
+        <p className="text-foreground-muted text-base mb-2">
+          @{displayProfile?.username || "username"}
+        </p>
+        {displayProfile?.bio && (
+          <p className="text-foreground-muted text-sm leading-relaxed text-center max-w-xs mb-4">
+            {displayProfile.bio}
+          </p>
+        )}
+        <div className="flex gap-3 w-full max-w-xs mb-6">
+          {isOwnProfile ? (
+            <Button
+              variant="principal"
+              size="medium"
+              className="flex-1"
+              onClick={() => navigate("/editar-perfil")}
+            >
+              Editar perfil
+            </Button>
+          ) : (
+            <Button variant="secundario" size="medium" className="flex-1">
+              Seguir
+            </Button>
+          )}
+        </div>
+        {/* Estatísticas */}
+        <div className="flex justify-center items-center gap-8 mb-6">
+          <div className="text-center">
+            <span className="font-bold text-lg text-foreground">0</span>
+            <p className="text-sm text-foreground-muted">Seguindo</p>
           </div>
-          
-          {/* Nome e Bio */}
-          <div className="mt-6 text-center">
-            <h2 className="font-semibold text-lg">{formData.full_name}</h2>
-            <p className="text-neutral-300 text-sm max-w-sm mt-1">{formData.bio}</p>
+          <div className="text-center">
+            <span className="font-bold text-lg text-foreground">0</span>
+            <p className="text-sm text-foreground-muted">Seguidores</p>
           </div>
-        </section>
+          <div className="text-center">
+            <span className="font-bold text-lg text-foreground">
+              {videos.length}
+            </span>
+            <p className="text-sm text-foreground-muted">Vídeos</p>
+          </div>
+        </div>
 
-        {/* --- BOTÕES DE AÇÃO --- */}
-        <section className="flex items-center gap-3 mb-6 px-4">
-          <Button 
-            variant="principal" 
-            size="medium" 
-            className="flex-1 py-3"
-            onClick={() => navigate('/editar-perfil')}>
-            Editar perfil
-          </Button>
-          <Button variant="secundario" size="medium" className="flex-1 py-3">
-            Seguir perfil
-          </Button>
-        </section>
+        {/* Seção de Vídeos */}
+        <div className="w-full max-w-4xl px-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
+            Vídeos ({videos.length})
+          </h3>
 
-        {/* --- ABAS PARA NAVEGAÇÃO DE VÍDEOS --- */}
-        <section className="flex border-t border-b border-neutral-700 mt-4">
-          <button 
-            onClick={() => setActiveTab('grid')}
-            className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'grid' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
-          >
-            <BsGrid3X3 size={20} />
-          </button>
-          <button 
-            onClick={() => setActiveTab('saved')}
-            className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'saved' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
-          >
-            <BsBookmark size={20} />
-          </button>
-          <button 
-            onClick={() => setActiveTab('liked')}
-            className={`flex-1 justify-center flex items-center py-3 text-neutral-400 transition-colors duration-200 
-                        ${activeTab === 'liked' ? 'border-b-2 border-white text-white' : ''} -mb-px`}
-          >
-            <BsHeart size={20} />
-          </button>
-        </section>
-        
-        {/* --- GRADE DE VÍDEOS --- */}
-        <main className="grid grid-cols-3 gap-0.5 mt-0.5">
-          {videos.map((_, index) => (
-            <div key={index} className="relative aspect-square bg-neutral-800">
-              <img 
-                src={`https://picsum.photos/300/300?random=${index}`} 
-                alt={`Foto aleatória ${index + 1}`}
-                className="w-full h-full object-cover" 
-              />
-              <div className="absolute bottom-1 left-1 flex items-center gap-1 text-xs bg-black bg-opacity-50 px-1 rounded">
-                <BsPersonVideo />
-                <span>1.2M</span>
-              </div>
+          {videosLoading ? (
+            <div className="flex justify-center py-8">
+              <Loading />
             </div>
-          ))}
-        </main>
-
+          ) : videos.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-foreground-muted">
+                {isOwnProfile
+                  ? "Você ainda não publicou nenhum vídeo"
+                  : "Este usuário ainda não publicou vídeos"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+              {videos.map((video) => (
+                <div
+                  key={video.id}
+                  className="aspect-[9/16] bg-background-light rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
+                  onClick={() =>
+                    handleOpenVideo({ ...video, user: displayProfile })
+                  }
+                >
+                  {video.thumbnail_url ? (
+                    <img
+                      src={video.thumbnail_url}
+                      alt={video.title || "Vídeo"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-primary/40"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Modal de Vídeo */}
+      <VideoModal
+        video={selectedVideo}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

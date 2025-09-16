@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useUser from "./useUser.js";
 import {
   uploadVideo,
@@ -6,7 +6,13 @@ import {
   getVideoMetadata,
   generateThumbnail,
 } from "../lib/videoStorage.js";
-import { createVideo, getVideos } from "../lib/videoService.js";
+import {
+  createVideo,
+  getVideos,
+  getUserVideos,
+  deleteVideo as deleteVideoFromDB,
+  updateVideo,
+} from "../lib/videoService.js";
 import { VIDEO_CONFIG, VIDEO_ERRORS } from "../lib/videoConfig.js";
 
 // Hook para upload de vídeo
@@ -115,5 +121,110 @@ export const useVideos = () => {
     error,
     hasMore,
     loadVideos,
+  };
+};
+
+// Hook para buscar vídeos de um usuário específico
+export const useUserVideos = (userId) => {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const loadUserVideos = useCallback(async () => {
+    if (!userId) {
+      setVideos([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getUserVideos(userId);
+      if (result.success) {
+        setVideos(result.data || []);
+      } else {
+        setError(result.error);
+        setVideos([]);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar vídeos do usuário:", err);
+      setError(err.message);
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  // Carrega vídeos quando userId muda
+  useEffect(() => {
+    loadUserVideos();
+  }, [loadUserVideos]);
+
+  return {
+    videos,
+    loading,
+    error,
+    reloadVideos: loadUserVideos,
+  };
+};
+
+// Hook para deletar vídeo
+export const useVideoDelete = () => {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const deleteVideo = async (videoId, videoUrl, thumbnailUrl) => {
+    setDeleting(true);
+    setError(null);
+    try {
+      const result = await deleteVideoFromDB(videoId, videoUrl, thumbnailUrl);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return { success: true };
+    } catch (err) {
+      console.error("Erro ao deletar vídeo:", err);
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return {
+    deleting,
+    error,
+    deleteVideo,
+  };
+};
+
+// Hook para editar vídeo
+export const useVideoEdit = () => {
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const editVideo = async (videoId, { title, description }) => {
+    setEditing(true);
+    setError(null);
+    try {
+      const result = await updateVideo(videoId, { title, description });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return { success: true, data: result.data };
+    } catch (err) {
+      console.error("Erro ao editar vídeo:", err);
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  return {
+    editing,
+    error,
+    editVideo,
   };
 };

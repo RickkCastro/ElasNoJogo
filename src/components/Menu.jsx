@@ -17,6 +17,7 @@ export default function Menu() {
     {
       name: "Feed",
       path: "/",
+      validation: true,
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" />
@@ -26,6 +27,7 @@ export default function Menu() {
     {
       name: "Seguindo",
       path: "/seguindo",
+      validation: true,
       icon: (
         <svg
           className="w-5 h-5"
@@ -40,6 +42,7 @@ export default function Menu() {
     {
       name: "Postar",
       path: "/postar",
+      validation: profile.profile_type === "Jogadora",
       icon: (
         <svg
           className="w-4 h-4 text-foreground-muted"
@@ -59,6 +62,7 @@ export default function Menu() {
     {
       name: "Jogos",
       path: "/jogos",
+      validation: true,
       icon: <MdOutlineStadium />,
     },
   ];
@@ -81,20 +85,23 @@ export default function Menu() {
             </div>
             {/* Itens do menu */}
             <div className="flex items-center gap-5">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                    isActive(item.path)
-                      ? "bg-primary-500/20 text-primary-500"
-                      : "text-foreground-muted hover:text-foreground hover:bg-primary-500/10"
-                  }`}
-                >
-                  {item.icon}
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              ))}
+              {menuItems.map(
+                (item) =>
+                  item.validation && (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                        isActive(item.path)
+                          ? "bg-primary-500/20 text-primary-500"
+                          : "text-foreground-muted hover:text-foreground hover:bg-primary-500/10"
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  )
+              )}
             </div>
             {/* Menu do usuário */}
             <div className="flex items-center gap-4">

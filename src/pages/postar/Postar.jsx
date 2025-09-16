@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useVideoUpload } from "../../hooks/useVideo";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
+import { IoChevronBack } from "react-icons/io5";
+import useUser from "../../hooks/useUser";
 
 export default function Postar() {
   let navigate = useNavigate();
+  const { profile } = useUser();
+
+  useEffect(() => {
+    if (profile.profile_type !== "Jogadora") {
+      navigate("/");
+    }
+  }, [profile, navigate]);
 
   const { uploading, error, uploadVideo } = useVideoUpload();
 
@@ -222,6 +231,15 @@ export default function Postar() {
                 variant="principal"
               >
                 Postar Vídeo
+              </Button>
+              <Button
+                className="w-full"
+                size="large"
+                variant="cancelar"
+                onClick={() => navigate("/")}
+                disabled={uploading}
+              >
+                Cancelar
               </Button>
             </div>
             {error && (
