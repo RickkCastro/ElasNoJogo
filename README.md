@@ -1,12 +1,44 @@
-# React + Vite
+## 🎮 Elas No Jogo
+Elas No Jogo é uma iniciativa que visa promover a representatividade feminina no universo do futebol feminino. Este projeto foi desenvolvido com foco em destacar meninas que querem começar carreiras no futebol, jogadoras de futebol feminino e criadoras de conteúdo, criando um espaço inclusivo e informativo para todos. Com a ajuda do Passa A Bola(PAB), desnvolvemos um site reponsivo que tem as seguintes catégorias:
+  - Campeonatos: Podendo acessar estatísticas de jogos, placares e ver quando os próximos jogos viram!
+  - Feed/Seguindo: Poder ver vídeos de várias meninas talentosas jogando bola.
+  - Postar(somente jogadoras): Para as meninas jogadoras, poderam postar vídeos e fotos sobre sua rotina de treino ou suas melhores jogadas.
+  - Perfil: Todos vão poder alterar seu perfil, podendo colocar fotos novas, trocar o "@" de usuária.
+ 
+---
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 👥 Integrantes do Grupo
+  - Julia Pompeu – 561955* 
+  - Eduardo Duran Del Ciel - 562017
+  - Fernando Bellegarde - 564169
+  - Giovana Parreira – 562275
+  - Henrique Castro de Matos - 564560
 
-Currently, two official plugins are available:
+---
+ 
+## 🌐 Acesse o projeto online
+  🔗 https://elas-no-jogo.vercel.app/
+ 
+---
+ 
+## 🧠 Funcionalidades
+ - Vinculação de conta com o Google;
+ - Postagem de vídeos ou fotos;
+ - Interação com a postagem de outros usuários;
+ - Poder editar seu perfil;
+ - Poder ver os jogos que estão por vir do brasileirão;
+ - Poder ver placares ao vivo;
+ - Poder ver estatísticas de jogos;
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tecnologias utilizadas
+   - Next.js – Framework React para aplicações web;
+   - React – Biblioteca JavaScript para interfaces interativas;
+   - Tailwind CSS – Estilização moderna e responsiva;
+   - Vercel – Hospedagem e deploy contínuo.
+ 
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📄 Licença
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
