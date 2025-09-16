@@ -1,4 +1,3 @@
-import "./login.css";
 import Button from "../../components/Button";
 import supabase from "../../lib/supabaseClient";
 
