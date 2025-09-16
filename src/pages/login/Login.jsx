@@ -1,10 +1,14 @@
 import Button from "../../components/Button";
 import supabase from "../../lib/supabaseClient";
+import { getRedirectURL } from "../../lib/urlConfig.js";
 
 export default function Login() {
   function loginWithGoogle() {
     supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: getRedirectURL(),
+      },
     });
   }
 
