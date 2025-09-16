@@ -68,7 +68,7 @@ export default function CompleteProfile() {
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <DialogComponents
         isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={() => window.location.reload()}
         title="Perfil Criado!"
         description="Seu perfil foi criado com sucesso!"
         btText2="Continuar"
