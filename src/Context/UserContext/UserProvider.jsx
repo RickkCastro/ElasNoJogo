@@ -72,7 +72,7 @@ export default function UserProvider({ children }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, profile, loading, error, supabase }}>
+    <UserContext.Provider value={{ user, profile, loading, error }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import useUser from "../../hooks/useUser";
-import supabase from "../../lib/supabaseClient";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
+import supabase from "../../lib/supabaseClient";
 
 export default function CompleteProfile() {
   const { user } = useUser();

@@ -2,9 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import useUser from "../hooks/useUser";
 import Button from "./Button";
 import { MdOutlineStadium } from "react-icons/md";
+import supabase from "../lib/supabaseClient";
 
 export default function Menu() {
-  const { user, profile, supabase } = useUser();
+  const { user, profile } = useUser();
   const location = useLocation();
 
   const handleLogout = async () => {
