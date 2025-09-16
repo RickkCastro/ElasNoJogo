@@ -3,6 +3,7 @@ export default function Loading({
   text = "Carregando...",
   showText = true,
   fullScreen = true,
+  preencher = false,
 }) {
   const sizeClasses = {
     small: "w-4 h-4",
@@ -20,6 +21,8 @@ export default function Loading({
 
   const containerClass = fullScreen
     ? "fixed inset-0 flex flex-col items-center justify-center bg-background z-50"
+    : preencher
+    ? "h-full flex flex-col items-center justify-center bg-background z-50"
     : "flex flex-col items-center justify-center p-4";
 
   return (

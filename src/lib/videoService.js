@@ -219,3 +219,85 @@ export const updateVideo = async (videoId, { title, description }) => {
     return { success: false, error: error.message };
   }
 };
+
+// Busca vídeos de usuários que o usuário atual está seguindo
+export const getFollowingVideos = async (
+  userId,
+  page = 0,
+  limit = VIDEO_CONFIG.FEED.ITEMS_PER_PAGE
+) => {
+  try {
+    // Primeiro busca os IDs dos usuários que o usuário atual está seguindo
+    const { data: followingData, error: followingError } = await supabase
+      .from("followers")
+      .select("following_id")
+      .eq("follower_id", userId);
+
+    if (followingError) throw followingError;
+
+    const followingIds = followingData.map((f) => f.following_id);
+
+    // Se não está seguindo ninguém, retorna array vazio
+    if (followingIds.length === 0) {
+      return {
+        success: true,
+        data: [],
+        hasMore: false,
+      };
+    }
+
+    // Busca vídeos primeiro
+    const { data: videosData, error: videosError } = await supabase
+      .from("videos")
+      .select("*")
+      .in("user_id", followingIds)
+      .order("created_at", { ascending: false })
+      .range(page * limit, (page + 1) * limit - 1);
+
+    if (videosError) throw videosError;
+
+    // Se não há vídeos, retorna array vazio
+    if (!videosData || videosData.length === 0) {
+      return {
+        success: true,
+        data: [],
+        hasMore: false,
+      };
+    }
+
+    // Busca profiles dos usuários dos vídeos
+    const userIds = [...new Set(videosData.map((v) => v.user_id))];
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url")
+      .in("id", userIds);
+
+    if (profilesError) throw profilesError;
+
+    // Cria um mapa de profiles para lookup rápido
+    const profilesMap = (profilesData || []).reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {});
+
+    // Combina vídeos com profiles
+    const videos = videosData.map((video) => ({
+      ...video,
+      user: {
+        id: video.user_id,
+        avatar_url: profilesMap[video.user_id]?.avatar_url,
+        full_name: profilesMap[video.user_id]?.full_name,
+        username: profilesMap[video.user_id]?.username,
+      },
+    }));
+
+    return {
+      success: true,
+      data: videos,
+      hasMore: videosData?.length === limit,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar vídeos dos seguidos:", error);
+    return { success: false, error: error.message };
+  }
+};
