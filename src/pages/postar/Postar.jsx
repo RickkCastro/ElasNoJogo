@@ -3,6 +3,7 @@ import { useVideoUpload } from "../../hooks/useVideo";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
+import { IoChevronBack } from "react-icons/io5";
 
 export default function Postar() {
   let navigate = useNavigate();
@@ -222,6 +223,15 @@ export default function Postar() {
                 variant="principal"
               >
                 Postar Vídeo
+              </Button>
+              <Button
+                className="w-full"
+                size="large"
+                variant="cancelar"
+                onClick={() => navigate("/")}
+                disabled={uploading}
+              >
+                Cancelar
               </Button>
             </div>
             {error && (

@@ -187,7 +187,7 @@ export default function Feed() {
               <div className="absolute bottom-50 md:bottom-30 right-4 z-20 flex flex-col items-end">
                 <Link
                   to={`/perfil/${video.user.id}`}
-                  className="rounded-full border-2 border-white shadow-lg w-12 h-12 flex items-center justify-center bg-background/80 hover:scale-105 transition-transform"
+                  className="rounded-full border-2 border-white shadow-lg w-12 h-12 flex items-center justify-center bg-primary-500/80 hover:scale-105 transition-transform"
                   title="Ver perfil"
                 >
                   {video.user?.avatar_url ? (

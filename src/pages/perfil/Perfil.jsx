@@ -1,9 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
 import useUser from "../../hooks/useUser";
 import Loading from "../../components/Loading.jsx";
 import Button from "../../components/Button.jsx";
+import VideoModal from "../../components/VideoModal.jsx";
 import { IoLogOutOutline, IoChevronBack } from "react-icons/io5";
 import useProfileById from "../../hooks/useProfileById.js";
+import { useUserVideos } from "../../hooks/useVideo.js";
 
 export default function ProfileScreen() {
   const { user, profile, logout } = useUser();
@@ -20,6 +23,24 @@ export default function ProfileScreen() {
   // Perfil a ser exibido (próprio perfil ou de outro usuário)
   const displayProfile = isOwnProfile ? profile : otherProfile;
   const profileLoading = isOwnProfile ? !user || !profile : otherProfileLoading;
+
+  // Busca vídeos do usuário
+  const targetUserId = isOwnProfile ? user?.id : id;
+  const { videos, loading: videosLoading } = useUserVideos(targetUserId);
+
+  // Estado para controlar o modal de vídeo
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenVideo = (video) => {
+    setSelectedVideo(video);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedVideo(null);
+  };
 
   const handleLogout = async () => {
     try {
@@ -78,7 +99,7 @@ export default function ProfileScreen() {
 
       {/* Conteúdo do perfil */}
       <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 pb-8">
-        <div className="w-28 h-28 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center mb-4">
+        <div className="w-28 h-28 rounded-full bg-primary-500/80 border-2 border-primary/30 flex items-center justify-center mb-4">
           {displayProfile?.avatar_url ? (
             <img
               src={displayProfile.avatar_url}
@@ -124,7 +145,7 @@ export default function ProfileScreen() {
           )}
         </div>
         {/* Estatísticas */}
-        <div className="flex justify-center items-center gap-8 mb-2">
+        <div className="flex justify-center items-center gap-8 mb-6">
           <div className="text-center">
             <span className="font-bold text-lg text-foreground">0</span>
             <p className="text-sm text-foreground-muted">Seguindo</p>
@@ -134,11 +155,71 @@ export default function ProfileScreen() {
             <p className="text-sm text-foreground-muted">Seguidores</p>
           </div>
           <div className="text-center">
-            <span className="font-bold text-lg text-foreground">0</span>
-            <p className="text-sm text-foreground-muted">Curtidas</p>
+            <span className="font-bold text-lg text-foreground">
+              {videos.length}
+            </span>
+            <p className="text-sm text-foreground-muted">Vídeos</p>
           </div>
         </div>
+
+        {/* Seção de Vídeos */}
+        <div className="w-full max-w-4xl px-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
+            Vídeos ({videos.length})
+          </h3>
+
+          {videosLoading ? (
+            <div className="flex justify-center py-8">
+              <Loading />
+            </div>
+          ) : videos.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-foreground-muted">
+                {isOwnProfile
+                  ? "Você ainda não publicou nenhum vídeo"
+                  : "Este usuário ainda não publicou vídeos"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+              {videos.map((video) => (
+                <div
+                  key={video.id}
+                  className="aspect-[9/16] bg-background-light rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
+                  onClick={() =>
+                    handleOpenVideo({ ...video, user: displayProfile })
+                  }
+                >
+                  {video.thumbnail_url ? (
+                    <img
+                      src={video.thumbnail_url}
+                      alt={video.title || "Vídeo"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-primary/40"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Modal de Vídeo */}
+      <VideoModal
+        video={selectedVideo}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
