@@ -1,0 +1,160 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import useUser from "../../hooks/useUser";
+import supabase from "../../lib/supabaseClient";
+import DialogComponents from "../../components/DialogComponents";
+import Button from "../../components/Button";
+
+export default function EditarPerfil() {
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    full_name: "",
+    bio: "",
+    profile_type: "",
+    avatar_url: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username, full_name, bio, profile_type, avatar_url")
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setFormData(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar perfil:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData((prev) => ({ ...prev, avatar_url: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const updatedProfile = {
+        updated_at: new Date().toUTCString(),
+        username: formData.username,
+        full_name: formData.full_name,
+        bio: formData.bio,
+        profile_type: formData.profile_type,
+        avatar_url: formData.avatar_url,
+      };
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(updatedProfile)
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+      <DialogComponents
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title="Perfil Atualizado!"
+        description="Suas informações foram salvas com sucesso."
+        btText2="Voltar ao Perfil"
+        btAction02={() => navigate(-1)}
+      />
+
+      <div className="w-full max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary-500 mb-4">
+            Editar Perfil
+          </h1>
+          <p className="text-foreground-muted text-sm md:text-base leading-relaxed">
+            Mantenha suas informações sempre atualizadas.
+          </p>
+        </div>
+
+        <div className="bg-background-light rounded-2xl p-6 md:p-8 shadow-xl border border-primary-500/20">
+          <form onSubmit={handleUpdateProfile} className="space-y-6">
+            <div className="text-center">
+              <div className="relative inline-block">
+                <div className="w-24 h-24 mx-auto bg-background rounded-full border-4 border-primary-500/30 flex items-center justify-center overflow-hidden">
+                  {formData.avatar_url ? (
+                    <img
+                      src={formData.avatar_url}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg className="w-8 h-8 text-foreground-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  )}
+                </div>
+                <label htmlFor="profile-image" className="absolute -bottom-2 -right-2 bg-secondary-500 hover:bg-secondary-600 text-foreground rounded-full p-2 cursor-pointer transition-colors shadow-lg">
+                  <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24"><path d="M4 12H20M12 4V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                </label>
+                <input id="profile-image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Nome de usuário</label>
+              <input type="text" name="username" value={formData.username} onChange={handleInputChange} required className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors" placeholder="@seuusername" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Nome completo</label>
+              <input type="text" name="full_name" value={formData.full_name} onChange={handleInputChange} required className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors" placeholder="Seu nome completo" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Biografia</label>
+              <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows={4} maxLength={200} className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors resize-none" placeholder="Conte um pouco sobre você..."></textarea>
+              <p className="text-xs text-foreground-subtle mt-1">{formData.bio.length}/200 caracteres</p>
+            </div>
+
+            <div className="flex flex-col gap-4 items-center">
+              <Button type="submit" disabled={loading} loading={loading} className="w-full" size="large" variant="principal">
+                Salvar Alterações
+              </Button>
+              <Button variant="cancelar" size="medium" className="w-40" onClick={() => navigate(-1)}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  );
+}

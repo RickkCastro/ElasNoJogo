@@ -10,7 +10,7 @@ export default function Button({
   ...props
 }) {
   const baseStyles =
-    "font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 disabled:cursor-not-allowed";
+  "font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed";
 
   const variantStyles = {
     principal: `
