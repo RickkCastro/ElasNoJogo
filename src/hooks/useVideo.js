@@ -92,13 +92,21 @@ export const useVideos = () => {
       const result = await getVideos(page, VIDEO_CONFIG.FEED.ITEMS_PER_PAGE);
       if (result.success) {
         const fetched = result.data || [];
+        setHasMore(
+          typeof result.hasMore === "boolean"
+            ? result.hasMore
+            : fetched.length === VIDEO_CONFIG.FEED.ITEMS_PER_PAGE
+        );
         if (page === 0) {
           setVideos(fetched);
         } else {
-          setVideos((prev) => [...prev, ...fetched]);
+          // Evita itens duplicados ao concatenar
+          setVideos((prev) => {
+            const seen = new Set(prev.map((v) => v.id));
+            const deduped = fetched.filter((v) => !seen.has(v.id));
+            return [...prev, ...deduped];
+          });
         }
-        // se retornou menos que o pageSize, não há mais páginas
-        setHasMore(fetched.length === VIDEO_CONFIG.FEED.ITEMS_PER_PAGE);
         return fetched.length;
       } else {
         setError(result.error);

@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import useUser from "../hooks/useUser";
 import Button from "./Button";
 import { MdOutlineStadium } from "react-icons/md";
+import { FaUserAlt } from "react-icons/fa";
 
 export default function Menu() {
   const { user, profile, logout } = useUser();
@@ -42,7 +43,8 @@ export default function Menu() {
     {
       name: "Postar",
       path: "/postar",
-      validation: profile.profile_type === "Jogadora",
+      // Evita acessar propriedade de perfil quando ainda não carregou
+      validation: profile?.profile_type === "Jogadora",
       icon: (
         <svg
           className="w-4 h-4 text-foreground-muted"
@@ -52,9 +54,9 @@ export default function Menu() {
           <path
             d="M4 12H20M12 4V20"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           ></path>
         </svg>
       ),
@@ -78,7 +80,13 @@ export default function Menu() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Elas No Jogo" className="w-8 h-8" />
+              <img
+                src="/logo.png"
+                alt="Elas No Jogo"
+                className="w-8 h-8"
+                loading="lazy"
+                decoding="async"
+              />
               <span className="text-xl font-bold text-primary-500">
                 Elas No Jogo
               </span>
@@ -115,6 +123,8 @@ export default function Menu() {
                       src={profile.avatar_url}
                       alt={profile.full_name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <span className="text-foreground text-sm font-bold">
@@ -147,52 +157,48 @@ export default function Menu() {
           </div>
         </div>
       </nav>
-      {/* Header Mobile */}
-      <header className="md:hidden absolute w-full p-4 flex justify-end z-50">
-        <Link
-          to="/perfil"
-          className="hover:bg-primary-500/10 rounded-lg transition-colors duration-200"
-        >
-          <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center overflow-hidden">
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-foreground text-sm font-bold">
-                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || "U"}
-              </span>
-            )}
-          </div>
-        </Link>
-      </header>
       {/* Bottom Navigation Mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background-light border-t border-primary-500/20 z-50">
         <div className="flex items-center justify-around px-2 py-2">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 min-w-0 flex-1 ${
-                isActive(item.path)
-                  ? "text-primary-500"
-                  : "text-foreground-muted hover:text-foreground"
-              }`}
-            >
-              <div
-                className={`mb-1 ${
-                  isActive(item.path) ? "scale-110" : ""
-                } transition-transform duration-200`}
-              >
-                {item.icon}
-              </div>
-              <span className="text-xs font-medium truncate w-full text-center">
-                {item.name}
-              </span>
-            </Link>
-          ))}
+          {menuItems.map(
+            (item) =>
+              item.validation && (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 min-w-0 flex-1 ${
+                    isActive(item.path)
+                      ? "text-primary-500"
+                      : "text-foreground-muted hover:text-foreground"
+                  }`}
+                >
+                  <div
+                    className={`mb-1 ${
+                      isActive(item.path) ? "scale-110" : ""
+                    } transition-transform duration-200`}
+                  >
+                    {item.icon}
+                  </div>
+                  <span className="text-xs font-medium truncate w-full text-center">
+                    {item.name ===
+                    (profile?.full_name || user?.email || "Perfil")
+                      ? "Perfil"
+                      : item.name}
+                  </span>
+                </Link>
+              )
+          )}
+          <Link
+            to={"/perfil"}
+            className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors duration-200 min-w-0 flex-1 `}
+          >
+            <div className={`mb-1 transition-transform duration-200`}>
+              <FaUserAlt className="w-4 h-4 text-foreground-muted" />
+            </div>
+            <span className="text-xs font-medium truncate w-full text-center">
+              Perfil
+            </span>
+          </Link>
         </div>
       </nav>
     </>

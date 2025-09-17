@@ -13,6 +13,7 @@ import { useVideoDelete } from "../hooks/useVideo";
 import useUser from "../hooks/useUser";
 import Button from "./Button";
 import DialogComponents from "./DialogComponents";
+import { incrementVideoViews } from "../lib/videoService";
 
 export default function VideoModal({ video, isOpen, onClose }) {
   const videoRef = useRef(null);
@@ -23,6 +24,25 @@ export default function VideoModal({ video, isOpen, onClose }) {
   const { deleting, deleteVideo } = useVideoDelete();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const hasCountedView = useRef(false);
+
+  // Conta visualização ao assistir 80% do vídeo
+  function handleTimeUpdate(e) {
+    const el = e.currentTarget;
+    const duration = el.duration || 0;
+    const current = el.currentTime || 0;
+    const watchedRatio = duration > 0 ? current / duration : 0;
+    if (!hasCountedView.current && watchedRatio > 0.8 && video && video.id) {
+      incrementVideoViews(video.id);
+      hasCountedView.current = true;
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
+      hasCountedView.current = false;
+    }
+  }, [isOpen]);
 
   // Verifica se o usuário é o proprietário do vídeo
   const isOwner =
@@ -147,6 +167,7 @@ export default function VideoModal({ video, isOpen, onClose }) {
               playsInline
               muted={false}
               loop
+              onTimeUpdate={handleTimeUpdate}
             />
           </div>
 
