@@ -27,6 +27,7 @@ Elas No Jogo é uma iniciativa que visa promover a representatividade feminina n
  - Interação com a postagem de outros usuários;
  - Poder ver vídeos de usuários que você segue;
  - Poder editar seu perfil;
+ - Poder ver os campeonatos do Brasil e de foraa.
 
 ---
 
