@@ -16,12 +16,11 @@ export default function VideoFeedItem({
 
   function onTimeUpdate(e) {
     const el = e.currentTarget;
-    if (
-      !hasCounted.current &&
-      el.currentTime / el.duration > 0.8 && // 80% assistido
-      video &&
-      video.id
-    ) {
+    // Evita divisão por zero quando metadados ainda não carregaram
+    const duration = el.duration || 0;
+    const current = el.currentTime || 0;
+    const watchedRatio = duration > 0 ? current / duration : 0;
+    if (!hasCounted.current && watchedRatio > 0.8 && video && video.id) {
       incrementVideoViews(video.id);
       hasCounted.current = true;
     }
