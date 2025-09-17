@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 
 const API_URL = "https://v3.football.api-sports.io/fixtures?league=..." // ajuste
 const API_KEY = "live_73f7f4fbee65edd8e140a2e612e12f"
