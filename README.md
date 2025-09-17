@@ -27,9 +27,6 @@ Elas No Jogo é uma iniciativa que visa promover a representatividade feminina n
  - Interação com a postagem de outros usuários;
  - Poder ver vídeos de usuários que você segue;
  - Poder editar seu perfil;
- - Poder ver os jogos que estão por vir do brasileirão;
- - Poder ver placares ao vivo;
- - Poder ver estatísticas de jogos;
 
 ---
 
@@ -37,7 +34,8 @@ Elas No Jogo é uma iniciativa que visa promover a representatividade feminina n
    - Next.js – Framework React para aplicações web;
    - React – Biblioteca JavaScript para interfaces interativas;
    - Tailwind CSS – Estilização moderna e responsiva;
-   - Vercel – Hospedagem e deploy contínuo.
+   - Vercel – Hospedagem e deploy contínuo;
+   - SupaBase - Como Banco de Dados extenso e API.
  
 ---
 
