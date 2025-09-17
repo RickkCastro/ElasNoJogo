@@ -5,7 +5,7 @@ import Loading from "./Loading";
 
 export default function GenericVideoFeed({
   className = "",
-  containerClassName = "h-screen md:h-[calc(100vh-64px)] overflow-y-scroll snap-y snap-mandatory scroll-smooth",
+  containerClassName = "h-[100dvh] md:h-[calc(100vh-64px)] overflow-y-scroll snap-y snap-mandatory scroll-smooth",
   useVideosHook,
   emptyStateText = "Nenhum vídeo disponível",
   loadingText = "Carregando vídeos...",
@@ -25,7 +25,7 @@ export default function GenericVideoFeed({
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
-  // Carrega a primeira página ao montar
+  // Carrega os vídeos ao montar
   useEffect(() => {
     loadVideos(0);
     setPage(0);
@@ -77,8 +77,10 @@ export default function GenericVideoFeed({
       entries.forEach((entry) => {
         const idx = Number(entry.target.dataset.index);
         if (!Number.isNaN(idx) && entry.isIntersecting) {
-          // Ignora a sentinela (índice igual ao comprimento da lista)
-          if (idx >= 0 && idx < videos.length) setActiveIndex(idx);
+          // Aceita índices válidos incluindo o vídeo duplicado
+          if (idx >= 0 && idx <= videos.length) {
+            setActiveIndex(idx);
+          }
         }
       });
     };
@@ -131,22 +133,30 @@ export default function GenericVideoFeed({
     });
   }, [activeIndex]);
 
-  // Paginação infinita; ao atingir o fim e não houver mais, volta ao início
+  // Carrega mais vídeos quando próximo do fim
   useEffect(() => {
     if (videos.length === 0) return;
-    const nearEndThreshold = 2;
-    const isNearEnd = activeIndex >= videos.length - 1 - nearEndThreshold;
+
+    // Carrega próxima página quando está próximo do fim
+    const nearEndThreshold = 3;
+    const isNearEnd = activeIndex >= videos.length - nearEndThreshold;
+
     if (isNearEnd && hasMore && !loading) {
-      const next = page + 1;
-      loadVideos(next).then((count) => {
-        if (count > 0) setPage(next);
+      const nextPage = page + 1;
+      loadVideos(nextPage).then((count) => {
+        if (count > 0) setPage(nextPage);
       });
     }
-    if (!hasMore && activeIndex >= videos.length) {
-      if (containerRef.current) {
-        containerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-      }
-      setActiveIndex(0);
+
+    // Se chegou no vídeo duplicado (primeiro vídeo renderizado novamente)
+    if (activeIndex === videos.length) {
+      // Volta para o início instantaneamente
+      setTimeout(() => {
+        if (containerRef.current) {
+          containerRef.current.scrollTo({ top: 0, behavior: "instant" });
+        }
+        setActiveIndex(0);
+      }, 100);
     }
   }, [activeIndex, videos.length, hasMore, loading, page, loadVideos]);
 
@@ -162,10 +172,7 @@ export default function GenericVideoFeed({
 
   return (
     <div className={`relative min-h-screen bg-background ${className}`}>
-      <div
-        ref={containerRef}
-        className={`${containerClassName} pb-[72px] md:pb-0`}
-      >
+      <div ref={containerRef} className={`${containerClassName} pb-20 md:pb-0`}>
         {error && (
           <div className="h-screen flex items-center justify-center text-red-500">
             Erro: {error}
@@ -190,11 +197,23 @@ export default function GenericVideoFeed({
           />
         ))}
 
+        {/* Renderiza o primeiro vídeo novamente para loop infinito */}
+        {videos.length > 0 && videos[0] && (
+          <VideoFeedItem
+            key={`${videos[0].id || 0}-loop`}
+            video={videos[0]}
+            index={videos.length}
+            portraitMap={portraitMap}
+            onLoadedMetadata={handleLoadedMetadata}
+            videoRef={(el) => (videoRefs.current[videos.length] = el)}
+          />
+        )}
+
         {videos.length > 0 && (
           <section
             data-feed-item
-            data-index={videos.length}
-            className="w-full h-screen md:h-[calc(100vh-64px)] snap-start bg-black flex items-center justify-center text-foreground-subtle text-sm"
+            data-index={videos.length + 1}
+            className="w-full h-[100dvh] md:h-[calc(100vh-64px)] snap-start bg-black flex items-center justify-center text-foreground-subtle text-sm"
           >
             {/* sentinela de scroll */}
           </section>

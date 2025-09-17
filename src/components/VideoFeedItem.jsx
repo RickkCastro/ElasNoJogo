@@ -41,11 +41,11 @@ export default function VideoFeedItem({
     <section
       data-feed-item
       data-index={index}
-      className="relative w-full snap-start flex items-center justify-center bg-black h-screen md:h-[calc(100vh-64px)]"
+      className="relative w-full snap-start flex items-center justify-center bg-black h-[100dvh] md:h-[calc(100vh-64px)]"
     >
       <div className="relative h-full w-full mx-auto max-w-none md:max-w-[640px] lg:max-w-[720px]">
         {/* Avatar do usuário e botão de like (itens laterais) */}
-        <div className="absolute z-30 flex flex-col items-center gap-4 right-4 bottom-30 md:right-6 md:bottom-24 lg:right-8 pointer-events-auto">
+        <div className="absolute z-30 flex flex-col items-center gap-4 right-4 bottom-32 md:right-6 md:bottom-24 lg:right-8 pointer-events-auto">
           <Link
             to={`/perfil/${video.user.id}`}
             className="group relative rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-black/40 backdrop-blur-sm border border-white/20 hover:bg-black/60 active:scale-95 transition-all duration-300 hover:border-white/40"
@@ -116,7 +116,7 @@ export default function VideoFeedItem({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 md:h-32 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
         {/* Overlay de informações do vídeo */}
-        <div className="absolute left-0 right-16 md:right-20 lg:right-24 px-4 text-left bottom-20 md:bottom-6">
+        <div className="absolute left-0 right-16 md:right-20 lg:right-24 px-4 text-left bottom-24 md:bottom-6">
           <p className="text-white/80 font-semibold mb-1 text-sm">
             @{video.user.username}
           </p>
