@@ -317,14 +317,30 @@ export const incrementVideoViews = async (videoId) => {
 
 // Verifica se o usuário curtiu o vídeo
 export const isVideoLiked = async (videoId, userId) => {
-  const { data, error } = await supabase
-    .from("video_likes")
-    .select("id")
-    .eq("video_id", videoId)
-    .eq("user_id", userId)
-    .single();
-  if (error && error.code !== "PGRST116") throw error;
-  return !!data;
+  try {
+    const { data, error } = await supabase
+      .from("video_likes")
+      .select("id")
+      .eq("video_id", videoId)
+      .eq("user_id", userId)
+      .single();
+
+    // Se não encontrou nenhum registro (PGRST116) ou erro 406, retorna false
+    if (error && (error.code === "PGRST116" || error.status === 406)) {
+      return false;
+    }
+
+    // Se houve outro tipo de erro, só loga mas não quebra
+    if (error) {
+      console.warn("Erro ao verificar like:", error);
+      return false;
+    }
+
+    return !!data;
+  } catch {
+    // Fallback silencioso - retorna false para qualquer erro
+    return false;
+  }
 };
 
 // Dá like no vídeo
@@ -334,10 +350,7 @@ export const likeVideo = async (videoId, userId) => {
     .insert({ video_id: videoId, user_id: userId });
   if (error) throw error;
   // Atualiza contador de likes
-  await supabase
-    .from("videos")
-    .update({ likes_count: supabase.rpc("increment", { x: 1 }) })
-    .eq("id", videoId);
+  await supabase.rpc("increment_video_likes", { video_id: videoId });
   return true;
 };
 
@@ -350,19 +363,26 @@ export const unlikeVideo = async (videoId, userId) => {
     .eq("user_id", userId);
   if (error) throw error;
   // Atualiza contador de likes
-  await supabase
-    .from("videos")
-    .update({ likes_count: supabase.rpc("decrement", { x: 1 }) })
-    .eq("id", videoId);
+  await supabase.rpc("decrement_video_likes", { video_id: videoId });
   return true;
 };
 
 // Conta total de likes do vídeo
 export const getVideoLikesCount = async (videoId) => {
-  const { count, error } = await supabase
-    .from("video_likes")
-    .select("*", { count: "exact", head: true })
-    .eq("video_id", videoId);
-  if (error) throw error;
-  return count || 0;
+  try {
+    const { count, error } = await supabase
+      .from("video_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("video_id", videoId);
+
+    // Ignora completamente erros 406 (Not Acceptable) - isso é normal quando não há dados
+    if (error && error.status !== 406) {
+      console.warn("Erro ao contar likes:", error);
+    }
+
+    return count || 0;
+  } catch {
+    // Fallback silencioso - retorna 0 para qualquer erro
+    return 0;
+  }
 };
