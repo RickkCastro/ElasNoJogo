@@ -23,8 +23,9 @@ Elas No Jogo é uma iniciativa que visa promover a representatividade feminina n
  
 ## 🧠 Funcionalidades
  - Vinculação de conta com o Google;
- - Postagem de vídeos ou fotos;
+ - Postagem de vídeos;
  - Interação com a postagem de outros usuários;
+ - Poder ver vídeos de usuários que você segue;
  - Poder editar seu perfil;
  - Poder ver os jogos que estão por vir do brasileirão;
  - Poder ver placares ao vivo;
