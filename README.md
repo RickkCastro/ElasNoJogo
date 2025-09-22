@@ -32,7 +32,6 @@ Elas No Jogo é uma iniciativa que visa promover a representatividade feminina n
 ---
 
 ## 🛠️ Tecnologias utilizadas
-   - Next.js – Framework React para aplicações web;
    - React – Biblioteca JavaScript para interfaces interativas;
    - Tailwind CSS – Estilização moderna e responsiva;
    - Vercel – Hospedagem e deploy contínuo;
