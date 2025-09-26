@@ -117,9 +117,13 @@ export default function VideoFeedItem({
 
         {/* Overlay de informações do vídeo */}
         <div className="absolute left-0 right-16 md:right-20 lg:right-24 px-4 text-left bottom-24 md:bottom-6">
-          <p className="text-white/80 font-semibold mb-1 text-sm">
+          <Link
+            to={`/perfil/${video.user.id}`}
+            title="Ver perfil"
+            className="text-white/80 font-semibold mb-1 text-sm"
+          >
             @{video.user.username}
-          </p>
+          </Link>
           <h3 className="text-white text-base md:text-lg font-bold line-clamp-2 mb-2">
             {video.title || "Sem título"}
           </h3>
