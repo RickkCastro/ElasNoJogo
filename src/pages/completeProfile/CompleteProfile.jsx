@@ -2,6 +2,7 @@ import { useState } from "react";
 import useUser from "../../hooks/useUser";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
+import LocationAutocomplete from "../../components/LocationAutocomplete";
 
 import { createProfile } from "../../lib/profileService";
 
@@ -188,20 +189,20 @@ export default function CompleteProfile() {
                             />
                         </div>
 
-                        {/* Localização */}
+                        {/* Localização (Autocomplete) */}
                         <div>
                             <label className="block text-sm font-medium text-foreground mb-2">
                                 Localização
                             </label>
-                            <input
-                                type="text"
-                                name="localizacao"
+                            <LocationAutocomplete
                                 value={formData.localizacao}
-                                onChange={handleInputChange}
-                                className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 
-                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent 
-                         placeholder-foreground-subtle transition-colors"
-                                placeholder="Sua cidade, estado..."
+                                onChange={(val) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        localizacao: val,
+                                    }))
+                                }
+                                placeholder="Digite para buscar..."
                             />
                         </div>
 
@@ -254,7 +255,6 @@ export default function CompleteProfile() {
                             <input
                                 type="date"
                                 name="data_nascimento"
-                                de
                                 value={formData.data_nascimento}
                                 onChange={handleInputChange}
                                 className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 

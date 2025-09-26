@@ -162,7 +162,7 @@ export default function ProfileScreen() {
                 {/* Localização, Idade e Posição */}
                 <div className="flex flex-col items-center gap-1 mb-2 w-full max-w-xs">
                     {displayProfile?.localizacao && (
-                        <span className="text-foreground-muted text-sm text-center truncate w-full">
+                        <span className="text-foreground-muted text-sm text-center w-full">
                             {displayProfile.localizacao}
                         </span>
                     )}
