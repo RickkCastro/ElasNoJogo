@@ -3,6 +3,7 @@ import useUser from "../../hooks/useUser";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 import LocationAutocomplete from "../../components/LocationAutocomplete";
+import PositionSelect from "../../components/PositionSelect";
 
 import { createProfile } from "../../lib/profileService";
 
@@ -211,40 +212,15 @@ export default function CompleteProfile() {
                             <label className="block text-sm font-medium text-foreground mb-2">
                                 Posição
                             </label>
-                            <select
-                                name="posicao"
+                            <PositionSelect
                                 value={formData.posicao}
-                                onChange={handleInputChange}
-                                className="w-full bg-background border border-primary-500/30 text-foreground rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-foreground-subtle transition-colors"
-                            >
-                                <option value="">Selecione sua posição</option>
-                                <option value="Goleira">Goleira</option>
-                                <option value="Zagueira">Zagueira</option>
-                                <option value="Lateral-direita">
-                                    Lateral-direita
-                                </option>
-                                <option value="Lateral-esquerda">
-                                    Lateral-esquerda
-                                </option>
-                                <option value="Volante">Volante</option>
-                                <option value="Meio-campista">
-                                    Meio-campista
-                                </option>
-                                <option value="Meia-atacante">
-                                    Meia-atacante
-                                </option>
-                                <option value="Ponta-direita">
-                                    Ponta-direita
-                                </option>
-                                <option value="Ponta-esquerda">
-                                    Ponta-esquerda
-                                </option>
-                                <option value="Atacante">Atacante</option>
-                                <option value="Centroavante">
-                                    Centroavante
-                                </option>
-                                <option value="Outra">Outra</option>
-                            </select>
+                                onChange={(val) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        posicao: val,
+                                    }))
+                                }
+                            />
                         </div>
 
                         {/* Data de Nascimento */}

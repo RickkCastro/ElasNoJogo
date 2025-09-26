@@ -26,8 +26,20 @@ export default function LocationAutocomplete({
 
     // Cache em memória (persistente durante vida do componente)
     const cacheRef = useRef(new Map());
+    // Flag para saber se o usuário já interagiu (digitou / alterou)
+    const userInteractedRef = useRef(false);
+
+    // Sincroniza quando o valor vindo de fora muda (ex: formulário carregado assincronamente).
+    useEffect(() => {
+        if (typeof value === "string" && value !== query) {
+            setQuery(value);
+        }
+        // não chamamos onChange aqui para evitar loop; apenas sincroniza internamente
+    }, [value, query]);
 
     useEffect(() => {
+        // Não dispara busca enquanto usuário não interagir (evita abrir dropdown ao carregar tela com valor preenchido)
+        if (!userInteractedRef.current) return;
         if (!debounced || debounced.trim().length < minLength) {
             setResults([]);
             return;
@@ -50,9 +62,8 @@ export default function LocationAutocomplete({
                 )}`;
                 const res = await fetch(url, {
                     headers: {
-                        // Identificação recomendada pela política do Nominatim. Ajustar com domínio/email real.
                         "Accept-Language": "pt-BR",
-                        "User-Agent": "ElasNoJogo/1.0", // Substitua pelo seu domínio/email real
+                        "User-Agent": "ElasNoJogo/1.0",
                     },
                     signal: controller.signal,
                 });
@@ -75,8 +86,8 @@ export default function LocationAutocomplete({
                     const full = d.display_name;
                     return {
                         id: d.place_id,
-                        label: simplify(full), // versão curta para exibir / salvar
-                        fullLabel: full, // versão completa (tooltip, se precisar)
+                        label: simplify(full),
+                        fullLabel: full,
                         lat: d.lat,
                         lon: d.lon,
                     };
@@ -86,14 +97,11 @@ export default function LocationAutocomplete({
                 setOpen(true);
                 setHighlight(-1);
             } catch (e) {
-                if (e.name !== "AbortError") {
-                    setResults([]);
-                }
+                if (e.name !== "AbortError") setResults([]);
             } finally {
                 setLoading(false);
             }
         })();
-
         return () => controller.abort();
     }, [debounced, minLength, limit, maxSegments]);
 
@@ -138,6 +146,7 @@ export default function LocationAutocomplete({
                 type="text"
                 value={query}
                 onChange={(e) => {
+                    userInteractedRef.current = true;
                     setQuery(e.target.value);
                     onChange(e.target.value);
                 }}

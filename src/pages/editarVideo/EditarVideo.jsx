@@ -3,6 +3,7 @@ import { useVideoEdit } from "../../hooks/useVideo";
 import { useNavigate, useLocation } from "react-router-dom";
 import Button from "../../components/Button";
 import { IoChevronBack } from "react-icons/io5";
+import LocationAutocomplete from "../../components/LocationAutocomplete";
 
 export default function EditarVideo() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function EditarVideo() {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    location: "",
   });
 
   // Carrega os dados do vídeo quando o componente monta
@@ -22,6 +24,7 @@ export default function EditarVideo() {
       setForm({
         title: video.title || "",
         description: video.description || "",
+        location: video.location || "",
       });
     } else {
       // Se não há vídeo, redireciona para o perfil
@@ -41,6 +44,7 @@ export default function EditarVideo() {
     const result = await editVideo(video.id, {
       title: form.title,
       description: form.description,
+      location: form.location,
     });
 
     if (result.success) {
@@ -134,6 +138,18 @@ export default function EditarVideo() {
                 <p className="text-xs text-foreground-subtle mt-1">
                   {form.description.length}/200 caracteres
                 </p>
+              </div>
+
+              {/* Localização (Autocomplete) */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Localização
+                </label>
+                <LocationAutocomplete
+                  value={form.location}
+                  onChange={(val) => setForm((prev) => ({ ...prev, location: val }))}
+                  placeholder="Digite para buscar..."
+                />
               </div>
 
               {/* Botões */}
