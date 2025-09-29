@@ -14,6 +14,7 @@ import useUser from "../hooks/useUser";
 import Button from "./Button";
 import DialogComponents from "./DialogComponents";
 import { incrementVideoViews } from "../lib/videoService";
+import { CiLocationOn } from "react-icons/ci";
 
 export default function VideoModal({ video, isOpen, onClose }) {
     const videoRef = useRef(null);
@@ -220,6 +221,16 @@ export default function VideoModal({ video, isOpen, onClose }) {
                             <div>
                                 <p className="text-sm text-foreground-muted leading-relaxed">
                                     {video.description}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Descrição */}
+                        {video.location && (
+                            <div className="flex gap-1">
+                                <CiLocationOn className="min-h-3 min-w-3 mt-0.5" />
+                                <p className="text-sm text-foreground-muted leading-relaxed">
+                                    {video.location}
                                 </p>
                             </div>
                         )}
