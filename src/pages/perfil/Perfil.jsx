@@ -13,7 +13,7 @@ function calcularIdade(dataNasc) {
     return idade;
 }
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useUser from "../../hooks/useUser";
 import Loading from "../../components/Loading.jsx";
 import Button from "../../components/Button.jsx";
@@ -22,30 +22,45 @@ import { IoLogOutOutline, IoChevronBack } from "react-icons/io5";
 import useProfileById from "../../hooks/useProfileById.js";
 import { useUserVideos } from "../../hooks/useVideo.js";
 import { useFollowers, useIsFollowing } from "../../hooks/useFollowers.js";
+import {
+    FaWhatsapp,
+    FaGlobe,
+    FaInstagram,
+    FaXTwitter,
+    FaTiktok,
+    FaYoutube,
+} from "react-icons/fa6";
+import { FaTwitter, FaPhoneAlt } from "react-icons/fa";
+import supabase from "../../lib/supabaseClient";
+
+const CONTACT_ICON_MAP = {
+    whatsapp: FaWhatsapp,
+    telefone: FaPhoneAlt,
+    website: FaGlobe,
+    instagram: FaInstagram,
+    x: FaXTwitter || FaTwitter,
+    tiktok: FaTiktok,
+    youtube: FaYoutube,
+};
 
 export default function ProfileScreen() {
-    const { user, profile, logout } = useUser();
+    const { user, profile, logout, contacts } = useUser();
     const navigate = useNavigate();
     const { id } = useParams();
 
-    // Determina se estamos vendo o próprio perfil ou o de outro usuário
     const isOwnProfile = !id || (user && id === user.id);
 
-    // Busca perfil de outro usuário se necessário
     const { profile: otherProfile, loading: otherProfileLoading } =
         useProfileById(!isOwnProfile && id ? id : null);
 
-    // Perfil a ser exibido (próprio perfil ou de outro usuário)
     const displayProfile = isOwnProfile ? profile : otherProfile;
     const profileLoading = isOwnProfile
         ? !user || !profile
         : otherProfileLoading;
 
-    // Busca vídeos do usuário
     const targetUserId = isOwnProfile ? user?.id : id;
     const { videos, loading: videosLoading } = useUserVideos(targetUserId);
 
-    // Hooks para sistema de seguidores
     const {
         followersCount,
         followingCount,
@@ -59,9 +74,25 @@ export default function ProfileScreen() {
         toggleFollow,
     } = useIsFollowing(user?.id, !isOwnProfile ? id : null, refetchFollowers);
 
-    // Estado para controlar o modal de vídeo
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Contatos do outro usuário (se visualizando perfil alheio)
+    const [externalContacts, setExternalContacts] = useState([]);
+    useEffect(() => {
+        async function fetchExternalContacts() {
+            if (isOwnProfile || !id) return;
+            const { data, error } = await supabase
+                .from("profile_contacts")
+                .select("id, type, title, url, icon_name, order_index")
+                .eq("profile_id", id)
+                .order("order_index", { ascending: true });
+            if (!error) setExternalContacts(data || []);
+        }
+        fetchExternalContacts();
+    }, [id, isOwnProfile]);
+
+    const displayContacts = isOwnProfile ? contacts : externalContacts;
 
     const handleOpenVideo = (video) => {
         setSelectedVideo(video);
@@ -81,12 +112,10 @@ export default function ProfileScreen() {
         }
     };
 
-    // Estados de carregamento
     if (profileLoading) {
         return <Loading />;
     }
 
-    // Se não encontrou perfil para ID específico
     if (id && !isOwnProfile && !displayProfile) {
         return (
             <div className="relative min-h-screen bg-background">
@@ -101,7 +130,6 @@ export default function ProfileScreen() {
 
     return (
         <div className="relative min-h-screen bg-background flex flex-col">
-            {/* Header centralizado, não fixo */}
             <header className="flex items-center justify-between px-4 py-4 mb-4 w-full max-w-lg mx-auto">
                 <Button
                     variant="transparente"
@@ -132,7 +160,6 @@ export default function ProfileScreen() {
                 )}
             </header>
 
-            {/* Conteúdo do perfil */}
             <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 pb-8">
                 <div className="w-28 h-28 rounded-full bg-primary-500/80 border-2 border-primary/30 flex items-center justify-center mb-4">
                     {displayProfile?.avatar_url ? (
@@ -159,7 +186,6 @@ export default function ProfileScreen() {
                 <p className="text-foreground-muted text-base mb-2">
                     @{displayProfile?.username || "username"}
                 </p>
-                {/* Localização, Idade e Posição */}
                 <div className="flex flex-col items-center gap-1 mb-2 w-full max-w-xs">
                     {displayProfile?.localizacao && (
                         <span className="text-foreground-muted text-sm text-center w-full">
@@ -185,6 +211,33 @@ export default function ProfileScreen() {
                         {displayProfile.bio}
                     </p>
                 )}
+
+                {/* Contatos */}
+                {displayContacts && displayContacts.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xs">
+                        {displayContacts.map((c) => {
+                            const Icon =
+                                CONTACT_ICON_MAP[c.icon_name || c.type] ||
+                                FaGlobe;
+                            return (
+                                <a
+                                    key={c.id}
+                                    href={c.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={c.title}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background-light border border-primary-500/20 hover:border-primary-500/50 transition-colors text-sm text-foreground group"
+                                >
+                                    <Icon className="text-primary-500 group-hover:scale-110 transition-transform" />
+                                    <span className="truncate max-w-[120px]">
+                                        {c.title}
+                                    </span>
+                                </a>
+                            );
+                        })}
+                    </div>
+                )}
+
                 <div className="flex gap-3 w-full max-w-xs mb-6">
                     {isOwnProfile ? (
                         <Button
@@ -211,7 +264,6 @@ export default function ProfileScreen() {
                         </Button>
                     )}
                 </div>
-                {/* Estatísticas */}
                 <div className="flex justify-center items-center gap-8 mb-6">
                     <button
                         className="text-center hover:opacity-70 transition-opacity"
@@ -253,7 +305,6 @@ export default function ProfileScreen() {
                     </div>
                 </div>
 
-                {/* Seção de Vídeos */}
                 <div className="w-full max-w-4xl px-4">
                     <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
                         Vídeos ({videos.length})
@@ -308,7 +359,6 @@ export default function ProfileScreen() {
                 </div>
             </div>
 
-            {/* Modal de Vídeo */}
             <VideoModal
                 video={selectedVideo}
                 isOpen={isModalOpen}

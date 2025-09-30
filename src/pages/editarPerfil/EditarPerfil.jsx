@@ -6,9 +6,11 @@ import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 import LocationAutocomplete from "../../components/LocationAutocomplete";
 import PositionSelect from "../../components/PositionSelect";
+import ContactsEditor from "../../components/ContactsEditor";
+import { replaceProfileContacts } from "../../lib/contactService";
 
 export default function EditarPerfil() {
-    const { user, setProfile } = useUser();
+    const { user, setProfile, contacts, setContacts } = useUser();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -20,6 +22,7 @@ export default function EditarPerfil() {
         localizacao: "",
         posicao: "",
     });
+    const [contactsDraft, setContactsDraft] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -55,6 +58,14 @@ export default function EditarPerfil() {
 
         fetchProfile();
     }, [user]);
+
+    // Inicializa contatos locais a partir do context quando abrir a tela
+    useEffect(() => {
+        if (contacts && contacts.length > 0) {
+            // acrescenta campo raw para edição de telefone/whatsapp sem perder formatação
+            setContactsDraft(contacts.map((c) => ({ ...c, raw: c.url })));
+        }
+    }, [contacts]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -100,6 +111,13 @@ export default function EditarPerfil() {
 
             // Atualiza o contexto global do usuário
             setProfile((prev) => ({ ...prev, ...updatedProfile }));
+
+            // salva contatos
+            const savedContacts = await replaceProfileContacts(
+                user.id,
+                contactsDraft
+            );
+            setContacts(savedContacts);
 
             setIsDialogOpen(true);
         } catch (error) {
@@ -255,6 +273,15 @@ export default function EditarPerfil() {
                                         posicao: val,
                                     }))
                                 }
+                            />
+                        </div>
+
+                        {/* Contatos */}
+                        <div>
+                            <ContactsEditor
+                                value={contactsDraft}
+                                onChange={setContactsDraft}
+                                max={3}
                             />
                         </div>
 
