@@ -42,17 +42,39 @@ const CONTACT_TYPES = [
     },
 ];
 
+// Formata máscara brasileira +55 (AA) 9XXXX-XXXX conforme quantidade de dígitos
+function formatBrazilPhoneMask(digits) {
+    if (!digits) return "";
+    if (!digits.startsWith("55")) digits = "55" + digits; // garante país
+    digits = digits.slice(0, 13);
+    const rest = digits.slice(2);
+    const country = "+55";
+    const ddd = rest.slice(0, 2);
+    const num = rest.slice(2);
+    if (!ddd) return country;
+    if (!num) return `${country} (${ddd}`;
+    if (num.length <= 4) return `${country} (${ddd}) ${num}`;
+    if (num.length <= 8) {
+        const prefix = num.slice(0, num.length - 4);
+        const suffix = num.slice(-4);
+        return `${country} (${ddd}) ${prefix}-${suffix}`;
+    }
+    const prefix = num.slice(0, num.length - 4);
+    const suffix = num.slice(-4);
+    return `${country} (${ddd}) ${prefix}-${suffix}`;
+}
+
 function buildUrl(type, raw) {
     const value = raw?.trim?.() || "";
     if (!value) return "";
     switch (type) {
         case "whatsapp": {
-            const digits = value.replace(/\D/g, "");
+            const digits = value.replace(/\D/g, "").replace(/^55?/, "55");
             if (!digits) return "";
             return `https://wa.me/${digits}`;
         }
         case "telefone": {
-            const digits = value.replace(/\D/g, "");
+            const digits = value.replace(/\D/g, "").replace(/^55?/, "55");
             return digits ? `tel:+${digits}` : "";
         }
         case "website":
@@ -66,7 +88,6 @@ function buildUrl(type, raw) {
 
 export default function ContactsEditor({ value = [], onChange, max = 3 }) {
     const items = value.slice(0, max);
-
     const updateItem = useCallback(
         (idx, patch) => {
             const next = items.map((c, i) =>
@@ -81,7 +102,14 @@ export default function ContactsEditor({ value = [], onChange, max = 3 }) {
         if (items.length >= max) return;
         onChange([
             ...items,
-            { type: "", title: "", url: "", icon_name: "", raw: "" },
+            {
+                type: "",
+                title: "",
+                url: "",
+                icon_name: "",
+                raw: "",
+                digits: "",
+            },
         ]);
     };
 
@@ -114,12 +142,13 @@ export default function ContactsEditor({ value = [], onChange, max = 3 }) {
                     const typeMeta = CONTACT_TYPES.find(
                         (t) => t.value === item.type
                     );
+                    const isPhone =
+                        item.type === "whatsapp" || item.type === "telefone";
                     return (
                         <div
                             key={idx}
                             className="relative border border-primary-500/30 rounded-xl p-4 space-y-4 bg-background"
                         >
-                            {/* Linha ícone + select */}
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 shrink-0 rounded-lg bg-primary-500/10 flex items-center justify-center text-primary-500">
                                     <Icon size={22} />
@@ -138,6 +167,7 @@ export default function ContactsEditor({ value = [], onChange, max = 3 }) {
                                                 icon_name: newType,
                                                 url: "",
                                                 raw: "",
+                                                digits: "",
                                             });
                                         }}
                                     >
@@ -157,7 +187,6 @@ export default function ContactsEditor({ value = [], onChange, max = 3 }) {
                                     </select>
                                 </div>
                             </div>
-                            {/* Campo título */}
                             <div className="flex flex-col">
                                 <label className="text-xs text-foreground mb-1">
                                     Título
@@ -175,27 +204,49 @@ export default function ContactsEditor({ value = [], onChange, max = 3 }) {
                                     placeholder={typeMeta?.label || "Título"}
                                 />
                             </div>
-                            {/* Campo link/valor */}
                             <div className="flex flex-col">
                                 <label className="text-xs text-foreground mb-1">
-                                    Link / Valor
+                                    {isPhone ? "Número" : "Link / Valor"}
                                 </label>
                                 <input
                                     type="text"
+                                    inputMode={isPhone ? "tel" : "text"}
                                     className="bg-background-light border border-primary-500/30 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={item.raw}
                                     onChange={(e) => {
-                                        const raw = e.target.value;
-                                        const finalUrl = buildUrl(
-                                            item.type,
-                                            raw
-                                        );
-                                        updateItem(idx, {
-                                            raw,
-                                            url: finalUrl,
-                                        });
+                                        const val = e.target.value;
+                                        if (isPhone) {
+                                            let digits = val.replace(/\D/g, "");
+                                            if (!digits.startsWith("55"))
+                                                digits = "55" + digits;
+                                            digits = digits.slice(0, 13);
+                                            const masked =
+                                                formatBrazilPhoneMask(digits);
+                                            const finalUrl = buildUrl(
+                                                item.type,
+                                                masked
+                                            );
+                                            updateItem(idx, {
+                                                raw: masked,
+                                                digits,
+                                                url: finalUrl,
+                                            });
+                                        } else {
+                                            const finalUrl = buildUrl(
+                                                item.type,
+                                                val
+                                            );
+                                            updateItem(idx, {
+                                                raw: val,
+                                                url: finalUrl,
+                                            });
+                                        }
                                     }}
-                                    placeholder={typeMeta?.placeholder || "URL"}
+                                    placeholder={
+                                        isPhone
+                                            ? "+55 (11) 99999-9999"
+                                            : typeMeta?.placeholder || "URL"
+                                    }
                                 />
                             </div>
                             <div className="flex justify-end pt-2">
