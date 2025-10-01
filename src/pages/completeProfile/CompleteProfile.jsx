@@ -4,11 +4,13 @@ import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
 import LocationAutocomplete from "../../components/LocationAutocomplete";
 import PositionSelect from "../../components/PositionSelect";
+import ContactsEditor from "../../components/ContactsEditor";
 
 import { createProfile } from "../../lib/profileService";
+import { replaceProfileContacts } from "../../lib/contactService";
 
 export default function CompleteProfile() {
-    const { user, logout } = useUser();
+    const { user, logout, setContacts } = useUser();
 
     const [formData, setFormData] = useState({
         username: "",
@@ -20,6 +22,8 @@ export default function CompleteProfile() {
         posicao: "",
         data_nascimento: "",
     });
+    const [contactsDraft, setContactsDraft] = useState([]);
+    const [contactsValid, setContactsValid] = useState(true); // novo estado para validade
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -62,6 +66,15 @@ export default function CompleteProfile() {
                 data_nascimento: formData.data_nascimento,
             };
             await createProfile(profileData);
+
+            // Salva contatos (se houver)
+            if (contactsDraft.length > 0) {
+                const saved = await replaceProfileContacts(
+                    user.id,
+                    contactsDraft
+                );
+                setContacts(saved);
+            }
             setIsDialogOpen(true);
         } catch (error) {
             console.error("Erro ao completar perfil:", error);
@@ -76,7 +89,8 @@ export default function CompleteProfile() {
         !formData.full_name.trim() ||
         !formData.profile_type ||
         !formData.data_nascimento ||
-        formData.bio.length > 200;
+        formData.bio.length > 200 ||
+        !contactsValid; // bloqueia se contatos inválidos
 
     return (
         <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -135,9 +149,9 @@ export default function CompleteProfile() {
                                         <path
                                             d="M4 12H20M12 4V20"
                                             stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         ></path>{" "}
                                     </svg>
                                 </label>
@@ -316,6 +330,16 @@ export default function CompleteProfile() {
                             <p className="text-xs text-foreground-subtle mt-1">
                                 {formData.bio.length}/200 caracteres
                             </p>
+                        </div>
+
+                        {/* Contatos */}
+                        <div>
+                            <ContactsEditor
+                                value={contactsDraft}
+                                onChange={setContactsDraft}
+                                max={3}
+                                onValidityChange={setContactsValid}
+                            />
                         </div>
 
                         {/* Botão de submit */}
