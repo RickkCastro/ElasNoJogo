@@ -23,6 +23,7 @@ export default function CompleteProfile() {
         data_nascimento: "",
     });
     const [contactsDraft, setContactsDraft] = useState([]);
+    const [contactsValid, setContactsValid] = useState(true); // novo estado para validade
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -88,7 +89,8 @@ export default function CompleteProfile() {
         !formData.full_name.trim() ||
         !formData.profile_type ||
         !formData.data_nascimento ||
-        formData.bio.length > 200;
+        formData.bio.length > 200 ||
+        !contactsValid; // bloqueia se contatos inválidos
 
     return (
         <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -336,6 +338,7 @@ export default function CompleteProfile() {
                                 value={contactsDraft}
                                 onChange={setContactsDraft}
                                 max={3}
+                                onValidityChange={setContactsValid}
                             />
                         </div>
 
