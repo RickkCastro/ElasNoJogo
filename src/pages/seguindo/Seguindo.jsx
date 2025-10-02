@@ -1,11 +1,16 @@
+import GenericVideoFeed from "../../components/GenericVideoFeed";
 import Menu from "../../components/Menu";
-import FollowingVideoFeed from "../../components/FollowingVideoFeed";
+import { useFollowingVideos } from "../../hooks/useFollowingVideos";
 
 export default function Seguindo() {
-  return (
-    <div className="relative min-h-screen bg-background">
-      <Menu />
-      <FollowingVideoFeed />
-    </div>
-  );
+    return (
+        <div className="relative min-h-screen bg-background">
+            <Menu />
+            <GenericVideoFeed
+                useVideosHook={useFollowingVideos}
+                emptyStateText="Nenhum vídeo disponível"
+                loadingText="Carregando vídeos..."
+            />
+        </div>
+    );
 }

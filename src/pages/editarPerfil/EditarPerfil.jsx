@@ -4,9 +4,13 @@ import useUser from "../../hooks/useUser";
 import supabase from "../../lib/supabaseClient";
 import DialogComponents from "../../components/DialogComponents";
 import Button from "../../components/Button";
+import LocationAutocomplete from "../../components/LocationAutocomplete";
+import PositionSelect from "../../components/PositionSelect";
+import ContactsEditor from "../../components/ContactsEditor";
+import { replaceProfileContacts } from "../../lib/contactService";
 
 export default function EditarPerfil() {
-  const { user, setProfile } = useUser();
+  const { user, setProfile, contacts, setContacts } = useUser();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -15,7 +19,11 @@ export default function EditarPerfil() {
     bio: "",
     profile_type: "",
     avatar_url: "",
+    localizacao: "",
+    posicao: "",
   });
+  const [contactsDraft, setContactsDraft] = useState([]);
+  const [contactsValid, setContactsValid] = useState(true); // novo estado
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -26,13 +34,23 @@ export default function EditarPerfil() {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("username, full_name, bio, profile_type, avatar_url")
+          .select("*")
           .eq("id", user.id)
           .single();
 
         if (error) throw error;
         if (data) {
-          setFormData(data);
+          // Garante compatibilidade caso perfil antigo tenha usado 'location'
+          setFormData((prev) => ({
+            ...prev,
+            username: data.username || "",
+            full_name: data.full_name || "",
+            bio: data.bio || "",
+            profile_type: data.profile_type || "",
+            avatar_url: data.avatar_url || "",
+            localizacao: data.localizacao || data.location || "",
+            posicao: data.posicao || "",
+          }));
         }
       } catch (error) {
         console.error("Erro ao buscar perfil:", error);
@@ -41,6 +59,14 @@ export default function EditarPerfil() {
 
     fetchProfile();
   }, [user]);
+
+  // Inicializa contatos locais a partir do context quando abrir a tela
+  useEffect(() => {
+    if (contacts && contacts.length > 0) {
+      // acrescenta campo raw para edição de telefone/whatsapp sem perder formatação
+      setContactsDraft(contacts.map((c) => ({ ...c, raw: c.url })));
+    }
+  }, [contacts]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,7 +78,10 @@ export default function EditarPerfil() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setFormData((prev) => ({ ...prev, avatar_url: e.target.result }));
+        setFormData((prev) => ({
+          ...prev,
+          avatar_url: e.target.result,
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -70,6 +99,8 @@ export default function EditarPerfil() {
         bio: formData.bio,
         profile_type: formData.profile_type,
         avatar_url: formData.avatar_url,
+        localizacao: formData.localizacao,
+        posicao: formData.posicao,
       };
 
       const { error } = await supabase
@@ -82,6 +113,13 @@ export default function EditarPerfil() {
       // Atualiza o contexto global do usuário
       setProfile((prev) => ({ ...prev, ...updatedProfile }));
 
+      // salva contatos
+      const savedContacts = await replaceProfileContacts(
+        user.id,
+        contactsDraft
+      );
+      setContacts(savedContacts);
+
       setIsDialogOpen(true);
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
@@ -89,6 +127,15 @@ export default function EditarPerfil() {
       setLoading(false);
     }
   };
+
+  // Validação similar à CompleteProfile (sem data_nascimento pois não existe aqui)
+  const isFormInvalid =
+    loading ||
+    !formData.username.trim() ||
+    !formData.full_name.trim() ||
+    !formData.profile_type ||
+    formData.bio.length > 200 ||
+    !contactsValid;
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -206,10 +253,53 @@ export default function EditarPerfil() {
               </p>
             </div>
 
+            {/* Localização */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Localização
+              </label>
+              <LocationAutocomplete
+                value={formData.localizacao}
+                onChange={(val) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    localizacao: val,
+                  }))
+                }
+                placeholder="Digite para buscar..."
+              />
+            </div>
+
+            {/* Posição */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Posição
+              </label>
+              <PositionSelect
+                value={formData.posicao}
+                onChange={(val) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    posicao: val,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Contatos */}
+            <div>
+              <ContactsEditor
+                value={contactsDraft}
+                onChange={setContactsDraft}
+                max={3}
+                onValidityChange={setContactsValid}
+              />
+            </div>
+
             <div className="flex flex-col gap-4 items-center">
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isFormInvalid}
                 loading={loading}
                 className="w-full"
                 size="large"
