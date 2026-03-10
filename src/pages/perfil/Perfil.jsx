@@ -1,47 +1,20 @@
-// Função para calcular idade a partir da data de nascimento yyyy-mm-dd
-function calcularIdade(dataNasc) {
-    if (!dataNasc) return null;
-    const [ano, mes, dia] = dataNasc.split("-");
-    if (!ano || !mes || !dia) return null;
-    const hoje = new Date();
-    const nascimento = new Date(Number(ano), Number(mes) - 1, Number(dia));
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    const m = hoje.getMonth() - nascimento.getMonth();
-    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
-        idade--;
-    }
-    return idade;
-}
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useUser from "../../hooks/useUser";
 import Loading from "../../components/Loading.jsx";
 import Button from "../../components/Button.jsx";
 import VideoModal from "../../components/VideoModal.jsx";
-import { IoLogOutOutline, IoChevronBack } from "react-icons/io5";
 import useProfileById from "../../hooks/useProfileById.js";
 import { useUserVideos } from "../../hooks/useVideo.js";
 import { useFollowers, useIsFollowing } from "../../hooks/useFollowers.js";
-import {
-    FaWhatsapp,
-    FaGlobe,
-    FaInstagram,
-    FaXTwitter,
-    FaTiktok,
-    FaYoutube,
-} from "react-icons/fa6";
-import { FaTwitter, FaPhoneAlt } from "react-icons/fa";
-import supabase from "../../lib/supabaseClient";
+import { getProfileContacts } from "../../lib/contactService.js";
+import { calcularIdade } from "../../utils/date.js";
 
-const CONTACT_ICON_MAP = {
-    whatsapp: FaWhatsapp,
-    telefone: FaPhoneAlt,
-    website: FaGlobe,
-    instagram: FaInstagram,
-    x: FaXTwitter || FaTwitter,
-    tiktok: FaTiktok,
-    youtube: FaYoutube,
-};
+// Components
+import ProfileHeader from "./components/ProfileHeader.jsx";
+import ContactBar from "./components/ContactBar.jsx";
+import ProfileStats from "./components/ProfileStats.jsx";
+import VideoGrid from "./components/VideoGrid.jsx";
 
 export default function ProfileScreen() {
     const { user, profile, logout, contacts } = useUser();
@@ -82,12 +55,8 @@ export default function ProfileScreen() {
     useEffect(() => {
         async function fetchExternalContacts() {
             if (isOwnProfile || !id) return;
-            const { data, error } = await supabase
-                .from("profile_contacts")
-                .select("id, type, title, url, icon_name, order_index")
-                .eq("profile_id", id)
-                .order("order_index", { ascending: true });
-            if (!error) setExternalContacts(data || []);
+            const data = await getProfileContacts(id);
+            setExternalContacts(data);
         }
         fetchExternalContacts();
     }, [id, isOwnProfile]);
@@ -130,35 +99,13 @@ export default function ProfileScreen() {
 
     return (
         <div className="relative min-h-screen bg-background flex flex-col">
-            <header className="flex items-center justify-between px-4 py-4 mb-4 w-full max-w-lg mx-auto">
-                <Button
-                    variant="transparente"
-                    size="small"
-                    onClick={() => navigate("/")}
-                    className="p-2"
-                >
-                    <IoChevronBack size={22} />
-                </Button>
-                <div className="flex-1 flex justify-center">
-                    <span className="text-2xl font-bold text-foreground tracking-tight select-none">
-                        {isOwnProfile
-                            ? "Perfil"
-                            : displayProfile?.full_name || "Perfil"}
-                    </span>
-                </div>
-                {isOwnProfile ? (
-                    <Button
-                        variant="transparente"
-                        size="small"
-                        onClick={handleLogout}
-                        className="p-2 text-red-500 hover:bg-red-500/10"
-                    >
-                        <IoLogOutOutline size={22} />
-                    </Button>
-                ) : (
-                    <div className="w-10 h-10" />
-                )}
-            </header>
+            <ProfileHeader
+                isOwnProfile={isOwnProfile}
+                displayProfile={displayProfile}
+                user={user}
+                onBack={() => navigate("/")}
+                onLogout={handleLogout}
+            />
 
             <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 pb-8">
                 <div className="w-28 h-28 rounded-full bg-primary-500/80 border-2 border-primary/30 flex items-center justify-center mb-4">
@@ -212,31 +159,7 @@ export default function ProfileScreen() {
                     </p>
                 )}
 
-                {/* Contatos */}
-                {displayContacts && displayContacts.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xs">
-                        {displayContacts.map((c) => {
-                            const Icon =
-                                CONTACT_ICON_MAP[c.icon_name || c.type] ||
-                                FaGlobe;
-                            return (
-                                <a
-                                    key={c.id}
-                                    href={c.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title={c.title}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background-light border border-primary-500/20 hover:border-primary-500/50 transition-colors text-sm text-foreground group"
-                                >
-                                    <Icon className="text-primary-500 group-hover:scale-110 transition-transform" />
-                                    <span className="truncate max-w-[120px]">
-                                        {c.title}
-                                    </span>
-                                </a>
-                            );
-                        })}
-                    </div>
-                )}
+                <ContactBar contacts={displayContacts} />
 
                 <div className="flex gap-3 w-full max-w-xs mb-6">
                     {isOwnProfile ? (
@@ -264,99 +187,31 @@ export default function ProfileScreen() {
                         </Button>
                     )}
                 </div>
-                <div className="flex justify-center items-center gap-8 mb-6">
-                    <button
-                        className="text-center hover:opacity-70 transition-opacity"
-                        onClick={() =>
-                            navigate(
-                                `/perfil/${targetUserId}/followers?tab=following`
-                            )
-                        }
-                        disabled={followersLoading}
-                    >
-                        <span className="font-bold text-lg text-foreground block">
-                            {followersLoading ? "..." : followingCount}
-                        </span>
-                        <p className="text-sm text-foreground-muted">
-                            Seguindo
-                        </p>
-                    </button>
-                    <button
-                        className="text-center hover:opacity-70 transition-opacity"
-                        onClick={() =>
-                            navigate(
-                                `/perfil/${targetUserId}/followers?tab=followers`
-                            )
-                        }
-                        disabled={followersLoading}
-                    >
-                        <span className="font-bold text-lg text-foreground block">
-                            {followersLoading ? "..." : followersCount}
-                        </span>
-                        <p className="text-sm text-foreground-muted">
-                            Seguidores
-                        </p>
-                    </button>
-                    <div className="text-center">
-                        <span className="font-bold text-lg text-foreground">
-                            {videos.length}
-                        </span>
-                        <p className="text-sm text-foreground-muted">Vídeos</p>
-                    </div>
-                </div>
 
-                <div className="w-full max-w-4xl px-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
-                        Vídeos ({videos.length})
-                    </h3>
+                <ProfileStats
+                    followingCount={followingCount}
+                    followersCount={followersCount}
+                    videosCount={videos.length}
+                    followersLoading={followersLoading}
+                    onFollowingClick={() =>
+                        navigate(
+                            `/perfil/${targetUserId}/followers?tab=following`
+                        )
+                    }
+                    onFollowersClick={() =>
+                        navigate(
+                            `/perfil/${targetUserId}/followers?tab=followers`
+                        )
+                    }
+                />
 
-                    {videosLoading ? (
-                        <div className="flex justify-center py-8">
-                            <Loading />
-                        </div>
-                    ) : videos.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-foreground-muted">
-                                {isOwnProfile
-                                    ? "Você ainda não publicou nenhum vídeo"
-                                    : "Este usuário ainda não publicou vídeos"}
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
-                            {videos.map((video) => (
-                                <div
-                                    key={video.id}
-                                    className="aspect-[9/16] bg-background-light rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
-                                    onClick={() =>
-                                        handleOpenVideo({
-                                            ...video,
-                                            user: displayProfile,
-                                        })
-                                    }
-                                >
-                                    {video.thumbnail_url ? (
-                                        <img
-                                            src={video.thumbnail_url}
-                                            alt={video.title || "Vídeo"}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                                            <svg
-                                                className="w-8 h-8 text-primary/40"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path d="M8 5v14l11-7z" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <VideoGrid
+                    videos={videos}
+                    loading={videosLoading}
+                    isOwnProfile={isOwnProfile}
+                    onOpenVideo={handleOpenVideo}
+                    displayProfile={displayProfile}
+                />
             </div>
 
             <VideoModal

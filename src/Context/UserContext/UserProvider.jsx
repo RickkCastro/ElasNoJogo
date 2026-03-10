@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { UserContext } from "./UserContext";
 import supabase from "../../lib/supabaseClient";
+import { getProfileContacts } from "../../lib/contactService";
 
 export default function UserProvider({ children }) {
     const [session, setSession] = useState(null);
@@ -8,21 +9,6 @@ export default function UserProvider({ children }) {
     const [contacts, setContacts] = useState([]); // novos contatos
     const [loading, setLoading] = useState(true);
     const [error] = useState(null);
-
-    // Busca contatos do perfil
-    const fetchContacts = useCallback(async (profileId) => {
-        if (!profileId) return [];
-        const { data, error } = await supabase
-            .from("profile_contacts")
-            .select("id, type, title, url, icon_name, order_index")
-            .eq("profile_id", profileId)
-            .order("order_index", { ascending: true });
-        if (error) {
-            console.warn("Erro ao buscar contatos:", error);
-            return [];
-        }
-        return data || [];
-    }, []);
 
     // Busca perfil do usuário logado
     const fetchProfile = useCallback(async (userId) => {
@@ -40,7 +26,7 @@ export default function UserProvider({ children }) {
             if (currentSession?.user) {
                 const profileData = await fetchProfile(currentSession.user.id);
                 setProfile(profileData);
-                const contactsData = await fetchContacts(
+                const contactsData = await getProfileContacts(
                     currentSession.user.id
                 );
                 setContacts(contactsData);
@@ -50,16 +36,16 @@ export default function UserProvider({ children }) {
             }
             setLoading(false);
         },
-        [fetchContacts, fetchProfile]
+        [fetchProfile]
     );
 
     // Permite refresh manual externo
     const refreshContacts = useCallback(async () => {
         if (session?.user) {
-            const contactsData = await fetchContacts(session.user.id);
+            const contactsData = await getProfileContacts(session.user.id);
             setContacts(contactsData);
         }
-    }, [session, fetchContacts]);
+    }, [session]);
 
     useEffect(() => {
         // Inicializa: busca sessão atual
